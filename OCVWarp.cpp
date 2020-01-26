@@ -72,7 +72,7 @@ int main(int argc,char *argv[])
 	////////////////////////////////////////////////////////////////////
 	// Initializing variables
 	////////////////////////////////////////////////////////////////////
-	bool doneflag = 0;
+	bool doneflag = 0, interactivemode = 0;
     double anglex = 0;
     double angley = 0;
     
@@ -102,6 +102,8 @@ int main(int argc,char *argv[])
 			infile >> outputw;
 			infile >> tempstring;
 			infile >> outputh;
+			infile >> tempstring;
+			infile >> interactivemode;
 			infile.close();
 			
 			anglex = atof(anglexstr);
@@ -180,14 +182,16 @@ int main(int argc,char *argv[])
     Mat map_x(Sout, CV_32FC1);
     Mat map_y(Sout, CV_32FC1);
     
+    update_map(anglex, angley, map_x, map_y);
+    
     for(;;) //Show the image captured in the window and repeat
     {
         inputVideo >> src;              // read
         if (src.empty()) break;         // check if at end
         //imshow("In",src);
         key = waitKey(10);
-        
-        update_map(anglex, angley, map_x, map_y);
+        if(interactivemode)
+			update_map(anglex, angley, map_x, map_y);
         remap( src, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
         
         std::cout << "\x1B[2K"; // Erase the entire current line.
@@ -206,9 +210,51 @@ int main(int argc,char *argv[])
 					doneflag = 1;
 					break;
 
+				case 'u':
 				case '+':
 				case '=':	// increase angley
-					doneflag = 0;
+					angley = angley + 1.0;
+					break;
+					
+				case 'm':
+				case '-':
+				case '_':	// decrease angley
+					angley = angley - 1.0;
+					break;
+					
+				case 'k':
+				case '}':
+				case ']':	// increase anglex
+					anglex = anglex + 1.0;
+					break;
+					
+				case 'h':
+				case '{':
+				case '[':	// decrease anglex
+					anglex = anglex - 1.0;
+					break;
+				
+				case 'U':
+					// increase angley
+					angley = angley + 10.0;
+					break;
+					
+				case 'M':
+					// decrease angley
+					angley = angley - 10.0;
+					break;
+					
+				case 'K':
+					// increase anglex
+					anglex = anglex + 10.0;
+					break;
+					
+				case 'H':
+					// decrease anglex
+					anglex = anglex - 10.0;
+					break;	
+					
+				default:
 					break;
 				
 				}
