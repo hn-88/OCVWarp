@@ -22,6 +22,16 @@
 //#define _WIN64
 //#define __unix__
 
+// references 
+// http://paulbourke.net/geometry/transformationprojection/
+// http://www.fmwconcepts.com/imagemagick/fisheye2pano/index.php
+// http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
+// 
+// https://docs.opencv.org/3.4/d8/dfe/classcv_1_1VideoCapture.html
+// https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
+// https://docs.opencv.org/3.4.9/d1/da0/tutorial_remap.html
+// https://stackoverflow.com/questions/60221/how-to-animate-the-command-line
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -37,14 +47,32 @@
 // this is for mkdir
 
 #include <opencv2/opencv.hpp>
+#include "tinyfiledialogs.h"
 
 using namespace cv;
+
+void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
+{
+	
+    for( int i = 0; i < map_x.rows; i++ )
+    {
+        for( int j = 0; j < map_x.cols; j++ )
+        {
+            
+                map_x.at<float>(i, j) = (float)j;
+                map_y.at<float>(i, j) = (float)(map_x.rows - i);
+                
+        }
+    }
+    
+}
 
 int main(int argc,char *argv[])
 {
 	////////////////////////////////////////////////////////////////////
 	// Initializing variables
 	////////////////////////////////////////////////////////////////////
+	bool doneflag = 0;
     double anglex = 0;
     double angley = 0;
     
@@ -54,7 +82,11 @@ int main(int argc,char *argv[])
     std::string tempstring;
     char anglexstr[40];
     char angleystr[40];
+    const bool askOutputType = argv[3][0] =='N';  // If false it will use the inputs codec type
     
+    std::ifstream infile("OCVWarp.ini");
+    
+    int ind = 1;
     // inputs from ini file
     if (infile.is_open())
 		  {
@@ -71,11 +103,124 @@ int main(int argc,char *argv[])
 			infile >> tempstring;
 			infile >> outputh;
 			infile.close();
+			
+			anglex = atof(anglexstr);
+			angley = atof(angleystr);
 		  }
 
-	else std::cout << "Unable to open ini file, using defaults.";
+	else std::cout << "Unable to open ini file, using defaults." << std::endl;
 	
+	namedWindow("In", 0); // 0 = WINDOW_NORMAL
+	moveWindow("In", 0, 0);
 	
+	char const * FilterPatterns[2] =  { "*.avi","*.*" };
+	char const * OpenFileName = tinyfd_openFileDialog(
+		"Open a video file",
+		"",
+		2,
+		FilterPatterns,
+		NULL,
+		0);
+
+	if (! OpenFileName)
+	{
+		tinyfd_messageBox(
+			"Error",
+			"No file chosen. ",
+			"ok",
+			"error",
+			1);
+		return 1 ;
+	}
+	
+	// reference:
+	// https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
+	
+	VideoCapture inputVideo(OpenFileName);              // Open input
+	if (!inputVideo.isOpened())
+    {
+        std::cout  << "Could not open the input video: " << OpenFileName << std::endl;
+        return -1;
+    }
+     
+    std::string OpenFileNamestr = OpenFileName;    
+    std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
+    const std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
+    int ex = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));     // Get Codec Type- Int form
+    // Transform from int to char via Bitwise operators
+    char EXT[] = {(char)(ex & 0XFF) , (char)((ex & 0XFF00) >> 8),(char)((ex & 0XFF0000) >> 16),(char)((ex & 0XFF000000) >> 24), 0};
+    Size S = Size((int) inputVideo.get(CAP_PROP_FRAME_WIDTH),    // Acquire input size
+                  (int) inputVideo.get(CAP_PROP_FRAME_HEIGHT));
+    Size Sout = Size(outputw,outputh);            
+    VideoWriter outputVideo;                                        // Open the output
+    if (askOutputType)
+        outputVideo.open(NAME, ex=-1, inputVideo.get(CAP_PROP_FPS), Sout, true);
+    else
+        outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
+    if (!outputVideo.isOpened())
+    {
+        std::cout  << "Could not open the output video for write: " << OpenFileName << std::endl;
+        return -1;
+    }
+    std::cout << "Input frame resolution: Width=" << S.width << "  Height=" << S.height
+         << " of nr#: " << inputVideo.get(CAP_PROP_FRAME_COUNT) << std::endl;
+    std::cout << "Input codec type: " << EXT << std::endl;
+    int channel = 2; // Select the channel to save
+    int key;
+    unsigned long long framenum = 0;
+    switch(argv[2][0])
+    {
+    case 'R' : channel = 2; break;
+    case 'G' : channel = 1; break;
+    case 'B' : channel = 0; break;
+    }
+    Mat src, res;
+    std::vector<Mat> spl;
+    Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
+    Mat map_x(Sout, CV_32FC1);
+    Mat map_y(Sout, CV_32FC1);
+    
+    for(;;) //Show the image captured in the window and repeat
+    {
+        inputVideo >> src;              // read
+        if (src.empty()) break;         // check if at end
+        //imshow("In",src);
+        key = waitKey(10);
+        
+        update_map(anglex, angley, map_x, map_y);
+        remap( src, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+        
+        std::cout << "\x1B[2K"; // Erase the entire current line.
+        std::cout << "\x1B[0E"; // Move to the beginning of the current line.
+        std::cout << "Frame number: " << framenum++ << std::flush;
+        
+       //outputVideo.write(res); //save or
+       outputVideo << dst;
+       
+       switch (key)
+				{
+
+				case 27: //ESC key
+				case 'x':
+				case 'X':
+					doneflag = 1;
+					break;
+
+				case '+':
+				case '=':	// increase angley
+					doneflag = 0;
+					break;
+				
+				}
+				
+		if (doneflag == 1)
+		{
+			break;
+		}
+    } // end for(;;) loop
+    
+    std::cout << std::endl << "Finished writing" << std::endl;
+    return 0;
 	   
 	   
 } // end main
