@@ -49,44 +49,61 @@
 #include <opencv2/opencv.hpp>
 #include "tinyfiledialogs.h"
 
+#define CV_PI   3.1415926535897932384626433832795
+
 using namespace cv;
 
 void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
 {
+	// set destination (output) centers
+	int xcd = floor(map_x.cols/2) - 1;
+	int ycd = floor(map_x.rows/2) - 1;
+	int xd, yd;
+	//define destination (output) coordinates center relative xd,yd
+	// "xd= x - xcd;"
+	// "yd= y - ycd;"
+
+	// compute input pixels per angle in radians
+	// theta ranges from -180 to 180 = 360 = 2*pi
+	// phi ranges from 0 to 90 = pi/2
+	float px_per_theta = map_x.cols / (2*CV_PI);
+	float px_per_phi   = map_x.rows / (CV_PI/2);
 	// compute destination radius and theta 
-	float rd = sqrt(map_x.cols^2+map_x.rows^2);
-	/*
-	# set theta so original is north rather than east
-	#theta="theta=atan2(-xd,yd);"
-	theta="theta=atan2(yd,xd);"
-
-
-	# convert radius to phiang according to fisheye mode
-	if [ "$projection" = "linear" ]; then
-		# destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
-		rad_per_px=`convert xc: -format "%[fx:pi/$hh]" info:`
-		phiang="phiang=$rad_per_px*rd;"
-	elif [ "$projection" = "stereographic" ]; then
-		phiang="phiang=2*atan(2*rd/$hh);"
-	elif [ "$projection" = "orthographic" ]; then
-		phiang="phiang=asin(2*rd/$hh);"
-	fi
-
-	# convert theta to source (input) xs and phi to source ys
-	# -rotate 90 aligns theta=0 with north and is faster than including in theta computation
-	# y corresponds to h-phi, so that bottom of the input is center of output
-	xs="xs=$ww2+theta*$px_per_theta;"
-	ys="ys=$hh-phiang*$px_per_phi;"
-	* */
+	float rd; // = sqrt(x^2+y^2);
 	
-    for( int i = 0; i < map_x.rows; i++ )
+	// set theta so original is north rather than east
+	float theta; //= atan2(y,x);
+	
+	// convert radius to phiang according to fisheye mode
+	//if projection is linear then
+	//	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
+	float rad_per_px = CV_PI / map_x.rows;
+	float phiang;     // = rad_per_px * rd;
+	
+
+	// convert theta to source (input) xs and phi to source ys
+	// -rotate 90 aligns theta=0 with north and is faster than including in theta computation
+	// y corresponds to h-phi, so that bottom of the input is center of output
+	// xs = width + theta * px_per_theta;
+	// ys = height - phiang * px_per_phi;
+	
+	
+    for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
     {
-        for( int j = 0; j < map_x.cols; j++ )
+        for ( int j = 0; j < map_x.cols; j++ )
         {
+			xd = j - xcd;
+			yd = i - ycd;
+            theta = atan2(yd,xd);
+            rd = sqrt(xd^2 + yd^2);
+            phiang = rad_per_px * rd;
             
-                map_x.at<float>(i, j) = (float)j;
-                map_y.at<float>(i, j) = (float)(map_x.rows - i);
-                
+            map_x.at<float>(i, j) = (float)map_x.cols + theta * px_per_theta;
+            map_y.at<float>(i, j) = (float)map_x.rows - phiang * px_per_phi;
+               
+		   // the following test mapping just makes the src upside down in dst
+		   // map_x.at<float>(i, j) = (float)j;
+		   // map_y.at<float>(i, j) = (float)(map_x.rows - i); 
                 
         }
     }
@@ -138,8 +155,9 @@ int main(int argc,char *argv[])
 
 	else std::cout << "Unable to open ini file, using defaults." << std::endl;
 	
-	namedWindow("In", 0); // 0 = WINDOW_NORMAL
-	moveWindow("In", 0, 0);
+	namedWindow("Display", WINDOW_NORMAL | WINDOW_KEEPRATIO); // 0 = WINDOW_NORMAL
+	resizeWindow("Display", 640, 640); 
+	moveWindow("Display", 0, 0);
 	
 	char const * FilterPatterns[2] =  { "*.avi","*.*" };
 	char const * OpenFileName = tinyfd_openFileDialog(
@@ -194,7 +212,8 @@ int main(int argc,char *argv[])
          << " of nr#: " << inputVideo.get(CAP_PROP_FRAME_COUNT) << std::endl;
     std::cout << "Input codec type: " << EXT << std::endl;
     int channel = 2; // Select the channel to save
-    int key;
+    int  fps, key;
+	int t_start, t_end;
     unsigned long long framenum = 0;
     switch(argv[2][0])
     {
@@ -202,38 +221,47 @@ int main(int argc,char *argv[])
     case 'G' : channel = 1; break;
     case 'B' : channel = 0; break;
     }
-    Mat src, res, dstr;
+    Mat src, res;
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
     Mat map_x(Sout, CV_32FC1);
     Mat map_y(Sout, CV_32FC1);
     
     update_map(anglex, angley, map_x, map_y);
-    
+    t_start = time(NULL);
+	fps = 0;
+	
     for(;;) //Show the image captured in the window and repeat
     {
         inputVideo >> src;              // read
         if (src.empty()) break;         // check if at end
-        //imshow("In",src);
+        //imshow("Display",src);
         key = waitKey(10);
+        
         if(interactivemode)
 			update_map(anglex, angley, map_x, map_y);
-        //remap( src, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
-        //resize(src, res, Size(2048,2048), 0, 0, INTER_AREA);
-        // this resize results in a 360 polar instead of 180 polar
-        res=src(Range::all(), Range(1024, 3072));
-         
-        Point2f center( (float)res.cols / 2, (float)res.rows / 2 );
-        double M = 1024;
-        linearPolar(res,dst, center, M, INTER_LINEAR + WARP_FILL_OUTLIERS);
+			
+		resize( src, res, Size(2048,2048), 0, 0, INTER_AREA);
+        remap( res, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
         
-        std::cout << "\x1B[2K"; // Erase the entire current line.
+        imshow("Display", dst);
+        //std::cout << "\x1B[2K"; // Erase the entire current line.
         std::cout << "\x1B[0E"; // Move to the beginning of the current line.
-        std::cout << "Frame number: " << framenum++ << " Size of res is " << res.size() << std::flush;
-        rotate(dst, dstr, ROTATE_90_CLOCKWISE);
+        fps++;
+        t_end = time(NULL);
+		if (t_end - t_start >= 5)
+		{
+			std::cout << "Frame number: " << framenum++ << " fps: " << fps/5 << std::flush;
+			t_start = time(NULL);
+			fps = 0;
+		}
+		else
+        std::cout << "Frame number: " << framenum++ << std::flush;
+        
         
        //outputVideo.write(res); //save or
-       outputVideo << dstr;
+       outputVideo << dst;
+       
        
        switch (key)
 				{
