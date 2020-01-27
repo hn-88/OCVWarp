@@ -53,6 +53,31 @@ using namespace cv;
 
 void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
 {
+	// compute destination radius and theta 
+	float rd = sqrt(map_x.cols^2+map_x.rows^2);
+	/*
+	# set theta so original is north rather than east
+	#theta="theta=atan2(-xd,yd);"
+	theta="theta=atan2(yd,xd);"
+
+
+	# convert radius to phiang according to fisheye mode
+	if [ "$projection" = "linear" ]; then
+		# destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
+		rad_per_px=`convert xc: -format "%[fx:pi/$hh]" info:`
+		phiang="phiang=$rad_per_px*rd;"
+	elif [ "$projection" = "stereographic" ]; then
+		phiang="phiang=2*atan(2*rd/$hh);"
+	elif [ "$projection" = "orthographic" ]; then
+		phiang="phiang=asin(2*rd/$hh);"
+	fi
+
+	# convert theta to source (input) xs and phi to source ys
+	# -rotate 90 aligns theta=0 with north and is faster than including in theta computation
+	# y corresponds to h-phi, so that bottom of the input is center of output
+	xs="xs=$ww2+theta*$px_per_theta;"
+	ys="ys=$hh-phiang*$px_per_phi;"
+	* */
 	
     for( int i = 0; i < map_x.rows; i++ )
     {
@@ -61,6 +86,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
             
                 map_x.at<float>(i, j) = (float)j;
                 map_y.at<float>(i, j) = (float)(map_x.rows - i);
+                
                 
         }
     }
@@ -176,7 +202,7 @@ int main(int argc,char *argv[])
     case 'G' : channel = 1; break;
     case 'B' : channel = 0; break;
     }
-    Mat src, res;
+    Mat src, res, dstr;
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
     Mat map_x(Sout, CV_32FC1);
@@ -192,14 +218,22 @@ int main(int argc,char *argv[])
         key = waitKey(10);
         if(interactivemode)
 			update_map(anglex, angley, map_x, map_y);
-        remap( src, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+        //remap( src, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+        //resize(src, res, Size(2048,2048), 0, 0, INTER_AREA);
+        // this resize results in a 360 polar instead of 180 polar
+        res=src(Range::all(), Range(1024, 3072));
+         
+        Point2f center( (float)res.cols / 2, (float)res.rows / 2 );
+        double M = 1024;
+        linearPolar(res,dst, center, M, INTER_LINEAR + WARP_FILL_OUTLIERS);
         
         std::cout << "\x1B[2K"; // Erase the entire current line.
         std::cout << "\x1B[0E"; // Move to the beginning of the current line.
-        std::cout << "Frame number: " << framenum++ << std::flush;
+        std::cout << "Frame number: " << framenum++ << " Size of res is " << res.size() << std::flush;
+        rotate(dst, dstr, ROTATE_90_CLOCKWISE);
         
        //outputVideo.write(res); //save or
-       outputVideo << dst;
+       outputVideo << dstr;
        
        switch (key)
 				{
