@@ -11,6 +11,7 @@
  * OCVWarp.cpp
  * 
  * Warps video files using the OpenCV framework. 
+ * Appends F to the filename and saves as default codec (DIVX avi) in the same folder.
  * 
  * first commit:
  * Hari Nandakumar
@@ -24,6 +25,9 @@
 
 // references 
 // http://paulbourke.net/geometry/transformationprojection/
+// equations in figure at http://paulbourke.net/dome/dualfish2sphere/
+// http://paulbourke.net/dome/dualfish2sphere/diagram.pdf
+
 // http://www.fmwconcepts.com/imagemagick/fisheye2pano/index.php
 // http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
 // 
@@ -32,12 +36,37 @@
 // https://docs.opencv.org/3.4.9/d1/da0/tutorial_remap.html
 // https://stackoverflow.com/questions/60221/how-to-animate-the-command-line
 
+
+//Pertinent equations from pano2fisheye:
+// fov=180 for fisheye
+// fov=2*phimax or phimax=fov/2
+// note rmax=N/2; N=height of input
+// linear: r=f*phi; f=rmax/phimax; f=(N/2)/((fov/2)*(pi/180))=N*180/(fov*pi)
+
+// https://stackoverflow.com/questions/46883320/conversion-from-dual-fisheye-coordinates-to-equirectangular-coordinates
+// taking Paul's page as ref, http://paulbourke.net/dome/dualfish2sphere/diagram.pdf
+/* // 2D fisheye to 3D vector
+phi = r * aperture / 2
+theta = atan2(y, x)
+
+// 3D vector to longitude/latitude
+longitude = atan2(Py, Px)
+latitude = atan2(Pz, (Px^2 + Py^2)^(0.5))
+
+// 3D vector to 2D equirectangular
+x = longitude / PI
+y = 2 * latitude / PI
+* ***/
+/*
+ * https://groups.google.com/forum/#!topic/hugin-ptx/wB-4LJHH5QI
+ * panotools code
+ * */
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #ifdef __unix__
 #include <unistd.h>
-#include <libqhy/qhyccd.h>
 #endif
 
 #include <string.h>
@@ -53,53 +82,102 @@
 
 using namespace cv;
 
+int sphere_tp_erect( double x_dest,double  y_dest, double* x_src, double* y_src)
+{
+	// params: double distanceparam
+	
+	double distanceparam = 1024;
+
+	register double phi, theta, r,s;
+	double v[3];
+
+	phi 	= x_dest / distanceparam;
+	theta 	=  - y_dest / distanceparam  + CV_PI / 2;
+	if(theta < 0)
+	{
+		theta = - theta;
+		phi += CV_PI;
+	}
+	if(theta > CV_PI)
+	{
+		theta = CV_PI - (theta - CV_PI);
+		phi += CV_PI;
+	}
+
+
+	s = sin( theta );
+	v[0] =  s * sin( phi );	//  y' -> x
+	v[1] =  cos( theta );				//  z' -> y
+	
+	r = sqrt( v[1]*v[1] + v[0]*v[0]);	
+
+	theta = distanceparam * atan2( r , s * cos( phi ) );
+	
+	*x_src =  theta * v[0] / r;
+	*y_src =  theta * v[1] / r;
+    return 1;
+}
+
+
+
+void erect_sphere_tp( double x_dest,double  y_dest, double* x_src, double* y_src)
+{
+        // params: double distance
+        
+        double distance = 2048;
+
+        register double  theta,r,s;
+        double        v[3];
+#if 0
+        theta = sqrt( x_dest * x_dest + y_dest * y_dest ) / *((double*)params);
+        phi   = atan2( y_dest , x_dest );
+
+        v[1] = *((double*)params) * sin( theta ) * cos( phi );   //  x' -> y
+        v[2] = *((double*)params) * sin( theta ) * sin( phi );        //  y' -> z
+        v[0] = *((double*)params) * cos( theta );                                //  z' -> x
+
+        theta = atan( sqrt( v[0]*v[0] + v[1]*v[1] ) / v[2] ); //was atan2
+        phi   = atan2( v[1], v[0] );
+
+        *x_src = *((double*)params) * phi;
+        if(theta > 0.0)
+        {
+                *y_src = *((double*)params) * (-theta + PI /2.0);
+        }
+        else
+                *y_src = *((double*)params) * (-theta - PI /2.0);
+#endif
+        r = sqrt( x_dest * x_dest + y_dest * y_dest );
+        theta = r / distance;
+        if(theta == 0.0)
+                s = 1.0 / distance;
+        else
+                s = sin( theta) / r;
+
+        v[1] =  s * x_dest;
+        v[0] =  cos( theta );
+
+
+        *x_src = distance * atan2( v[1], v[0] );
+        *y_src = distance * atan( s * y_dest /sqrt( v[0]*v[0] + v[1]*v[1] ) );
+}
+
 void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
 {
-	// set destination (output) centers
-	int xcd = floor(map_x.cols/2) - 1;
-	int ycd = floor(map_x.rows/2) - 1;
-	int xd, yd;
-	//define destination (output) coordinates center relative xd,yd
-	// "xd= x - xcd;"
-	// "yd= y - ycd;"
-
-	// compute input pixels per angle in radians
-	// theta ranges from -180 to 180 = 360 = 2*pi
-	// phi ranges from 0 to 90 = pi/2
-	float px_per_theta = map_x.cols / (2*CV_PI);
-	float px_per_phi   = map_x.rows / (CV_PI/2);
-	// compute destination radius and theta 
-	float rd; // = sqrt(x^2+y^2);
-	
-	// set theta so original is north rather than east
-	float theta; //= atan2(y,x);
-	
-	// convert radius to phiang according to fisheye mode
-	//if projection is linear then
-	//	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
-	float rad_per_px = CV_PI / map_x.rows;
-	float phiang;     // = rad_per_px * rd;
-	
-
-	// convert theta to source (input) xs and phi to source ys
-	// -rotate 90 aligns theta=0 with north and is faster than including in theta computation
-	// y corresponds to h-phi, so that bottom of the input is center of output
-	// xs = width + theta * px_per_theta;
-	// ys = height - phiang * px_per_phi;
+	// using panotools erect_sphere_tp
 	
 	
     for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
     {
         for ( int j = 0; j < map_x.cols; j++ )
         {
-			xd = j - xcd;
-			yd = i - ycd;
-            theta = atan2(yd,xd);
-            rd = sqrt(xd^2 + yd^2);
-            phiang = rad_per_px * rd;
+			double xsrc, ysrc, param = 10.0;
+			
+			erect_sphere_tp( (double)j, (double)i, &xsrc, &ysrc);
+			//sphere_tp_erect( (double)j, (double)i, &xsrc, &ysrc);
             
-            map_x.at<float>(i, j) = (float)map_x.cols + theta * px_per_theta;
-            map_y.at<float>(i, j) = (float)map_x.rows - phiang * px_per_phi;
+            map_x.at<float>(i, j) = (float)xsrc;
+            map_y.at<float>(i, j) = (float)ysrc;
                
 		   // the following test mapping just makes the src upside down in dst
 		   // map_x.at<float>(i, j) = (float)j;
@@ -223,9 +301,9 @@ int main(int argc,char *argv[])
     }
     Mat src, res;
     std::vector<Mat> spl;
-    Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
-    Mat map_x(Sout, CV_32FC1);
-    Mat map_y(Sout, CV_32FC1);
+    Mat dst(Sout, CV_8UC3, Scalar(0)); // S = src.size, and src.type = CV_8UC3
+    Mat map_x(Sout, CV_32FC1, Scalar(0));
+    Mat map_y(Sout, CV_32FC1, Scalar(0));
     
     update_map(anglex, angley, map_x, map_y);
     t_start = time(NULL);
@@ -256,7 +334,9 @@ int main(int argc,char *argv[])
 			fps = 0;
 		}
 		else
-        std::cout << "Frame number: " << framenum++ << std::flush;
+		{
+			std::cout << "Frame number: " << framenum++ << std::flush;
+		}
         
         
        //outputVideo.write(res); //save or
