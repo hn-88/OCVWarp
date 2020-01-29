@@ -133,16 +133,23 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
 			}
 			else
 			{
-				theta = atan2(float(yd),float(xd)); // this sets orig to east
-				//theta = atan2(-xd,yd); // this sets orig to north
+				//theta = atan2(float(yd),float(xd)); // this sets orig to east
+				// so America, at left of globe, becomes centred
+				theta = atan2(xd,yd); // this sets orig to north
+				// makes the fisheye left/right flipped if atan2(-xd,yd)
+				// so that Africa is centred.
 				rd = sqrt(float(xd*xd + yd*yd));
 			}
 			
             phiang = rad_per_px * rd;
             
             map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
-            map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
+            
+            //map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
             // this above makes the south pole the centre.
+            
+            map_y.at<float>(i, j) = phiang * px_per_phi;
+            // this above makes the north pole the centre of the fisheye
             
              
 		   // the following test mapping just makes the src upside down in dst
@@ -153,6 +160,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
     }
     
     // debug
+    /*
     std::cout << "map_x -> " << std::endl;
     
     for ( int i = 0; i < map_x.rows; i+=100 ) // here, i is for y and j is for x
@@ -174,6 +182,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
 		}
 		std::cout << std::endl;
 	}
+	* */
     
 }
 
