@@ -85,81 +85,131 @@ y = 2 * latitude / PI
 
 using namespace cv;
 
-void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
+void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int transformtype )
 {
-	// set destination (output) centers
-	int xcd = floor(map_x.cols/2) - 1;
-	int ycd = floor(map_x.rows/2) - 1;
-	int xd, yd;
-	//define destination (output) coordinates center relative xd,yd
-	// "xd= x - xcd;"
-	// "yd= y - ycd;"
-
-	// compute input pixels per angle in radians
-	// theta ranges from -180 to 180 = 360 = 2*pi
-	// phi ranges from 0 to 90 = pi/2
-	float px_per_theta = map_x.cols / (2*CV_PI);
-	float px_per_phi   = map_x.rows / (CV_PI/2);
-	// compute destination radius and theta 
-	float rd; // = sqrt(x^2+y^2);
+	// explanation comments are most verbose in the last 
+	// default (transformtype == 0) section
 	
-	// set theta so original is north rather than east
-	float theta; //= atan2(y,x);
-	
-	// convert radius to phiang according to fisheye mode
-	//if projection is linear then
-	//	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
-	float rad_per_px = CV_PI / map_x.rows;
-	float phiang;     // = rad_per_px * rd;
-	
-
-	// convert theta to source (input) xs and phi to source ys
-	// -rotate 90 aligns theta=0 with north and is faster than including in theta computation
-	// y corresponds to h-phi, so that bottom of the input is center of output
-	// xs = width + theta * px_per_theta;
-	// ys = height - phiang * px_per_phi;
-	
-	
-    for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
-    {
-        for ( int j = 0; j < map_x.cols; j++ )
-        {
-			xd = j - xcd;
-			yd = i - ycd;
-			if (xd == 0 && yd == 0)
+	if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
+	{
+		int xcd = floor(map_x.cols/2) - 1;
+		int ycd = floor(map_x.rows/2) - 1;
+		int xd, yd;
+		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
+		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
+		float rad_per_px = CV_PI / map_x.rows;
+		float rd, theta, phiang;
+		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
-				theta = 0;
-				rd = 0;
-			}
-			else
-			{
-				//theta = atan2(float(yd),float(xd)); // this sets orig to east
-				// so America, at left of globe, becomes centred
-				theta = atan2(xd,yd); // this sets orig to north
-				// makes the fisheye left/right flipped if atan2(-xd,yd)
-				// so that Africa is centred.
-				rd = sqrt(float(xd*xd + yd*yd));
-			}
+				for ( int j = 0; j < map_x.cols; j++ )
+				{
+					xd = j - xcd;
+					yd = i - ycd;
+					if (xd == 0 && yd == 0)
+					{
+						theta = 0;
+						rd = 0;
+					}
+					else
+					{
+						theta = atan2(xd,yd); // this sets orig to north
+						rd = sqrt(float(xd*xd + yd*yd));
+					}
+					
+					phiang = rad_per_px * rd;
+					
+					map_x.at<float>(i, j) = (float)round((map_x.cols) + theta * px_per_theta);
+					// halfway point of src = map_x.cols
+					map_y.at<float>(i, j) = phiang * px_per_phi;
+					
+				 } // for j
+				   
+			} // for i
 			
-            phiang = rad_per_px * rd;
+	}
+	else
+	//if (transformtype == 0) is the default // Equirectangular 360 to 360 degree fisheye
+	{
+		
+			// set destination (output) centers
+			int xcd = floor(map_x.cols/2) - 1;
+			int ycd = floor(map_x.rows/2) - 1;
+			int xd, yd;
+			//define destination (output) coordinates center relative xd,yd
+			// "xd= x - xcd;"
+			// "yd= y - ycd;"
+
+			// compute input pixels per angle in radians
+			// theta ranges from -180 to 180 = 360 = 2*pi
+			// phi ranges from 0 to 90 = pi/2
+			float px_per_theta = map_x.cols / (2*CV_PI);
+			float px_per_phi   = map_x.rows / (CV_PI/2);
+			// compute destination radius and theta 
+			float rd; // = sqrt(x^2+y^2);
+			
+			// set theta so original is north rather than east
+			float theta; //= atan2(y,x);
+			
+			// convert radius to phiang according to fisheye mode
+			//if projection is linear then
+			//	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
+			float rad_per_px = CV_PI / map_x.rows;
+			float phiang;     // = rad_per_px * rd;
+			
+
+			// convert theta to source (input) xs and phi to source ys
+			// -rotate 90 aligns theta=0 with north and is faster than including in theta computation
+			// y corresponds to h-phi, so that bottom of the input is center of output
+			// xs = width + theta * px_per_theta;
+			// ys = height - phiang * px_per_phi;
+			
+			
+			for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+			{
+				for ( int j = 0; j < map_x.cols; j++ )
+				{
+					xd = j - xcd;
+					yd = i - ycd;
+					if (xd == 0 && yd == 0)
+					{
+						theta = 0;
+						rd = 0;
+					}
+					else
+					{
+						//theta = atan2(float(yd),float(xd)); // this sets orig to east
+						// so America, at left of globe, becomes centred
+						theta = atan2(xd,yd); // this sets orig to north
+						// makes the fisheye left/right flipped if atan2(-xd,yd)
+						// so that Africa is centred.
+						rd = sqrt(float(xd*xd + yd*yd));
+					}
+					
+					phiang = rad_per_px * rd;
+					
+					map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
+					
+					//map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
+					// this above makes the south pole the centre.
+					
+					map_y.at<float>(i, j) = phiang * px_per_phi;
+					// this above makes the north pole the centre of the fisheye
+					
+					 
+				   // the following test mapping just makes the src upside down in dst
+				   // map_x.at<float>(i, j) = (float)j;
+				   // map_y.at<float>(i, j) = (float)( i); 
+				   
+				 } // for j
+				   
+			} // for i
+				
             
-            map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
-            
-            //map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
-            // this above makes the south pole the centre.
-            
-            map_y.at<float>(i, j) = phiang * px_per_phi;
-            // this above makes the north pole the centre of the fisheye
-            
-             
-		   // the following test mapping just makes the src upside down in dst
-		   // map_x.at<float>(i, j) = (float)j;
-		   // map_y.at<float>(i, j) = (float)( i); 
-                
-        }
-    }
+     
+     } // end of if transformtype == 0
     
-    // debug
+    
+// debug
     /*
     std::cout << "map_x -> " << std::endl;
     
@@ -182,9 +232,9 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
 		}
 		std::cout << std::endl;
 	}
-	* */
+	* */    
     
-}
+} // end function updatemap
 
 int main(int argc,char *argv[])
 {
@@ -205,6 +255,10 @@ int main(int argc,char *argv[])
     
     std::ifstream infile("OCVWarp.ini");
     
+    int transformtype = 0;
+    // 0 = Equirectangular to 360 degree fisheye
+    // 1 = Equirectangular to 180 degree fisheye
+    
     int ind = 1;
     // inputs from ini file
     if (infile.is_open())
@@ -223,6 +277,8 @@ int main(int argc,char *argv[])
 			infile >> outputh;
 			infile >> tempstring;
 			infile >> interactivemode;
+			infile >> tempstring;
+			infile >> transformtype;
 			infile.close();
 			
 			anglex = atof(anglexstr);
@@ -303,7 +359,7 @@ int main(int argc,char *argv[])
     Mat map_x(Sout, CV_32FC1);
     Mat map_y(Sout, CV_32FC1);
     
-    update_map(anglex, angley, map_x, map_y);
+    update_map(anglex, angley, map_x, map_y, transformtype);
     t_start = time(NULL);
 	fps = 0;
 	
@@ -315,9 +371,22 @@ int main(int argc,char *argv[])
         key = waitKey(10);
         
         if(interactivemode)
-			update_map(anglex, angley, map_x, map_y);
-			
-		resize( src, res, Size(2048,2048), 0, 0, INTER_AREA);
+			update_map(anglex, angley, map_x, map_y, transformtype);
+		
+		switch (transformtype)
+				{
+
+				case 1: // Equirect to 180 fisheye
+					resize( src, res, Size(outputw*2, outputh), 0, 0, INTER_AREA);
+					break;
+				
+				default:	
+				case 0: // Equirect to 360 fisheye
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					break;
+					
+				}
+		
         remap( res, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
         
         imshow("Display", dst);
