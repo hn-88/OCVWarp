@@ -92,8 +92,8 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	
 	if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
 	{
-		int xcd = floor(map_x.cols/2) - 1;
-		int ycd = floor(map_x.rows/2) - 1;
+		int xcd = floor(map_x.cols/2) - 1 + anglex;
+		int ycd = floor(map_x.rows/2) - 1 + angley;
 		int xd, yd;
 		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
 		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
@@ -343,16 +343,11 @@ int main(int argc,char *argv[])
     std::cout << "Input frame resolution: Width=" << S.width << "  Height=" << S.height
          << " of nr#: " << inputVideo.get(CAP_PROP_FRAME_COUNT) << std::endl;
     std::cout << "Input codec type: " << EXT << std::endl;
-    int channel = 2; // Select the channel to save
+     
     int  fps, key;
 	int t_start, t_end;
     unsigned long long framenum = 0;
-    switch(argv[2][0])
-    {
-    case 'R' : channel = 2; break;
-    case 'G' : channel = 1; break;
-    case 'B' : channel = 0; break;
-    }
+     
     Mat src, res;
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
@@ -396,12 +391,12 @@ int main(int argc,char *argv[])
         t_end = time(NULL);
 		if (t_end - t_start >= 5)
 		{
-			std::cout << "Frame number: " << framenum++ << " fps: " << fps/5 << std::flush;
+			std::cout << "Frame number: " << framenum++ << "x:" << anglex << "y:" << angley << " fps: " << fps/5 << std::flush;
 			t_start = time(NULL);
 			fps = 0;
 		}
 		//else
-        //std::cout << "Frame number: " << framenum++ << std::flush;
+        std::cout << "Frame number: " << framenum++ << "x:" << anglex << "y:" << angley << std::flush;
         
         
        //outputVideo.write(res); //save or
