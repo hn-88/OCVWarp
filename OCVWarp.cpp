@@ -126,17 +126,28 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y )
         {
 			xd = j - xcd;
 			yd = i - ycd;
-            theta = atan2(yd,xd); // this sets orig to east
-            //theta = atan2(-xd,yd); // this sets orig to north
-            rd = sqrt(xd^2 + yd^2);
+			if (xd == 0 && yd == 0)
+			{
+				theta = 0;
+				rd = 0;
+			}
+			else
+			{
+				theta = atan2(float(yd),float(xd)); // this sets orig to east
+				//theta = atan2(-xd,yd); // this sets orig to north
+				rd = sqrt(float(xd*xd + yd*yd));
+			}
+			
             phiang = rad_per_px * rd;
             
             map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
-            //map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
-               
+            map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
+            // this above makes the south pole the centre.
+            
+             
 		   // the following test mapping just makes the src upside down in dst
 		   // map_x.at<float>(i, j) = (float)j;
-		    map_y.at<float>(i, j) = (float)( i); 
+		   // map_y.at<float>(i, j) = (float)( i); 
                 
         }
     }
