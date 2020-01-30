@@ -35,6 +35,7 @@
 // https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
 // https://docs.opencv.org/3.4.9/d1/da0/tutorial_remap.html
 // https://stackoverflow.com/questions/60221/how-to-animate-the-command-line
+// https://stackoverflow.com/questions/11498169/dealing-with-angle-wrap-in-c-code
 
 
 // Pertinent equations from pano2fisheye:
@@ -92,13 +93,15 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	
 	if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
 	{
-		int xcd = floor(map_x.cols/2) - 1 + anglex;
-		int ycd = floor(map_x.rows/2) - 1 + angley;
+		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
+		// int ycd = floor(map_x.rows/2) - 1 + angley;
+		int xcd = floor(map_x.cols/2) - 1 ;
+		int ycd = floor(map_x.rows/2) - 1 ;
 		int xd, yd;
 		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
 		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
 		float rad_per_px = CV_PI / map_x.rows;
-		float rd, theta, phiang;
+		float rd, theta, phiang, remainder;
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
@@ -107,16 +110,21 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					yd = i - ycd;
 					if (xd == 0 && yd == 0)
 					{
-						theta = 0;
+						theta = 0 + anglex*CV_PI/180;
 						rd = 0;
 					}
 					else
 					{
-						theta = atan2(xd,yd); // this sets orig to north
+						theta = atan2(xd,yd) + anglex*CV_PI/180; // this sets orig to north
 						rd = sqrt(float(xd*xd + yd*yd));
 					}
+					// move theta to [-pi, pi]
+					theta = fmod(theta+CV_PI, 2*CV_PI);
+					if (theta < 0)
+						theta = theta + CV_PI;
+					theta = theta - CV_PI;	
 					
-					phiang = rad_per_px * rd;
+					phiang = rad_per_px * rd; 
 					
 					map_x.at<float>(i, j) = (float)round((map_x.cols) + theta * px_per_theta);
 					// halfway point of src = map_x.cols
@@ -172,18 +180,23 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					yd = i - ycd;
 					if (xd == 0 && yd == 0)
 					{
-						theta = 0;
+						theta = 0 + anglex*CV_PI/180;;
 						rd = 0;
 					}
 					else
 					{
 						//theta = atan2(float(yd),float(xd)); // this sets orig to east
 						// so America, at left of globe, becomes centred
-						theta = atan2(xd,yd); // this sets orig to north
+						theta = atan2(xd,yd) + anglex*CV_PI/180;; // this sets orig to north
 						// makes the fisheye left/right flipped if atan2(-xd,yd)
-						// so that Africa is centred.
+						// so that Africa is centred when anglex = 0.
 						rd = sqrt(float(xd*xd + yd*yd));
 					}
+					// move theta to [-pi, pi]
+					theta = fmod(theta+CV_PI, 2*CV_PI);
+					if (theta < 0)
+						theta = theta + CV_PI;
+					theta = theta - CV_PI;	
 					
 					phiang = rad_per_px * rd;
 					
@@ -276,8 +289,6 @@ int main(int argc,char *argv[])
 			infile >> tempstring;
 			infile >> outputh;
 			infile >> tempstring;
-			infile >> interactivemode;
-			infile >> tempstring;
 			infile >> transformtype;
 			infile.close();
 			
@@ -366,7 +377,10 @@ int main(int argc,char *argv[])
         key = waitKey(10);
         
         if(interactivemode)
+        {
 			update_map(anglex, angley, map_x, map_y, transformtype);
+			interactivemode = 0;
+		}
 		
 		switch (transformtype)
 				{
@@ -391,12 +405,12 @@ int main(int argc,char *argv[])
         t_end = time(NULL);
 		if (t_end - t_start >= 5)
 		{
-			std::cout << "Frame number: " << framenum++ << "x:" << anglex << "y:" << angley << " fps: " << fps/5 << std::flush;
+			std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::flush;
 			t_start = time(NULL);
 			fps = 0;
 		}
-		//else
-        std::cout << "Frame number: " << framenum++ << "x:" << anglex << "y:" << angley << std::flush;
+		else
+        std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << std::flush;
         
         
        //outputVideo.write(res); //save or
@@ -416,44 +430,52 @@ int main(int argc,char *argv[])
 				case '+':
 				case '=':	// increase angley
 					angley = angley + 1.0;
+					interactivemode = 1;
 					break;
 					
 				case 'm':
 				case '-':
 				case '_':	// decrease angley
 					angley = angley - 1.0;
+					interactivemode = 1;
 					break;
 					
 				case 'k':
 				case '}':
 				case ']':	// increase anglex
 					anglex = anglex + 1.0;
+					interactivemode = 1;
 					break;
 					
 				case 'h':
 				case '{':
 				case '[':	// decrease anglex
 					anglex = anglex - 1.0;
+					interactivemode = 1;
 					break;
 				
 				case 'U':
 					// increase angley
 					angley = angley + 10.0;
+					interactivemode = 1;
 					break;
 					
 				case 'M':
 					// decrease angley
 					angley = angley - 10.0;
+					interactivemode = 1;
 					break;
 					
 				case 'K':
 					// increase anglex
 					anglex = anglex + 10.0;
+					interactivemode = 1;
 					break;
 					
 				case 'H':
 					// decrease anglex
 					anglex = anglex - 10.0;
+					interactivemode = 1;
 					break;	
 					
 				default:
