@@ -101,34 +101,37 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
 		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
 		float rad_per_px = CV_PI / map_x.rows;
-		float rd, theta, phiang, remainder;
+		float rd, theta, phiang, temp;
+		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
+		float aperture = 1;
+		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
-					xd = j - xcd;
-					yd = i - ycd;
-					if (xd == 0 && yd == 0)
-					{
-						theta = 0 + anglex*CV_PI/180;
-						rd = 0;
-					}
+					longi 	= CV_PI * (j - xcd) / (map_x.cols/2) + anglex;		// longi = x.pi
+					lat	 	= (CV_PI / 2) * (i - ycd)/(map_x.rows/2) + angley;	// lat = y.pi/2
+					
+					Px = cos(lat)*cos(longi);
+					Py = cos(lat)*sin(longi);
+					Pz = sin(lat);
+					
+					if (Py == 0)
+						R = 0;
 					else
-					{
-						theta = atan2(xd,yd) + anglex*CV_PI/180; // this sets orig to north
-						rd = sqrt(float(xd*xd + yd*yd));
-					}
-					// move theta to [-pi, pi]
-					theta = fmod(theta+CV_PI, 2*CV_PI);
-					if (theta < 0)
-						theta = theta + CV_PI;
-					theta = theta - CV_PI;	
+						R = 2 * atan2(sqrt(Px*Px + Pz*Pz), Py) / aperture; 	
 					
-					phiang = rad_per_px * rd; 
+					if (Px == 0)
+						theta = 0;
+					else
+						theta = atan2(Pz, Px);
+						
 					
-					map_x.at<float>(i, j) = (float)round((map_x.cols) + theta * px_per_theta);
-					// halfway point of src = map_x.cols
-					map_y.at<float>(i, j) = phiang * px_per_phi;
+					// map_x.at<float>(i, j) = R * cos(theta); this maps to [-1, 1]
+					map_x.at<float>(i, j) = R * cos(theta) * map_x.cols / 2 + xcd;
+					
+					// map_y.at<float>(i, j) = R * sin(theta); this maps to [-1, 1]
+					map_y.at<float>(i, j) = R * sin(theta) * map_x.rows / 2 + ycd;
 					
 				 } // for j
 				   
@@ -198,6 +201,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 						theta = theta + CV_PI;
 					theta = theta - CV_PI;	
 					
+					//phiang = rad_per_px * rd + angley*CV_PI/180; // this zooms in/out, not rotate cam
 					phiang = rad_per_px * rd;
 					
 					map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
@@ -207,6 +211,8 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					
 					map_y.at<float>(i, j) = phiang * px_per_phi;
 					// this above makes the north pole the centre of the fisheye
+					// map_y.at<float>(i, j) = phiang * px_per_phi - angley; //this just zooms out
+					
 					
 					 
 				   // the following test mapping just makes the src upside down in dst
