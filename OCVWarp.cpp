@@ -116,9 +116,9 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					Py = cos(lat)*sin(longi);
 					Pz = sin(lat);
 					
-					if (Py == 0)
+					if (Px == 0 && Py == 0 && Pz == 0)
 						R = 0;
-					else
+					else 
 						R = 2 * atan2(sqrt(Px*Px + Pz*Pz), Py) / aperture; 	
 					
 					if (Px == 0)
