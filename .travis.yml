@@ -1,0 +1,39 @@
+language: cpp
+
+compiler:
+  - gcc
+  
+before_install:
+  - sudo apt-get update
+
+install:
+
+# OpenCV install code (modified from orignal source: https://github.com/jayrambhia/Install-OpenCV)
+
+  # OpenCV dependencies - Details available at: http://docs.opencv.org/trunk/doc/tutorials/introduction/linux_install/linux_install.html
+  - sudo apt-get install -y build-essential
+  - sudo apt-get install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+  - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+  - sudo apt-get install -y libusb-1.0-0-dev libusb-1.0-0
+  - sudo apt-get install libopencv-dev
+
+before_script:
+  - cd build
+  - cmake ..
+
+script: 
+  - make OCVWarp.bin
+  # modified from https://github.com/lupoDharkael/smilla-enlarger/pull/2/files
+  - mkdir -p appdir/usr/bin ; strip OCVWarp.bin ; cp OCVWarp.bin ./appdir/usr/bin/
+  - mkdir -p appdir/usr/share/applications ; cp ../appdir/OCVWarp.desktop ./appdir/usr/share/applications/
+  - mkdir -p appdir/usr/share/icons/hicolor/256x256/apps ; cp ../appdir/OCVWarp.png ./appdir/usr/share/icons/hicolor/256x256/apps/
+  - wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+  - chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+  - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+  - export VERSION=$(git rev-parse --short HEAD) # linuxdeployqt uses this for naming the file
+  - ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -bundle-non-qt-libs
+  - ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage
+
+after_success:
+  - find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
+  - curl --upload-file OCVWarp*.AppImage https://transfer.sh/OCVWarp1.20-x86_64.AppImage
