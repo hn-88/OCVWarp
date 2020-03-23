@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Name=OCVWarp
+Comment=OCVWarp tool
+Exec=OCVWarp.bin
+Icon=OCVWarp
+Terminal=true
+Type=Application
+Categories=Development;
+Name[en_IN]=OCVWarp
