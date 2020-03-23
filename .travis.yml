@@ -4,7 +4,7 @@ compiler:
   - gcc
   
 before_install:
-  - sudo add-apt-repository ppa:timsc/opencv-3.4
+  - sudo add-apt-repository -y ppa:timsc/opencv-3.4
   - sudo apt-get update
 
 install:
@@ -16,7 +16,7 @@ install:
   - sudo apt-get install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
   - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
   - sudo apt-get install -y libusb-1.0-0-dev libusb-1.0-0
-  - sudo apt-get install libopencv-dev # without ppa, this iinstalls 2.4 on xenial, need > 3.0 for video support. 
+  - sudo apt-get install -y libopencv-dev # without ppa, this iinstalls 2.4 on xenial, need > 3.0 for video support. 
   
 before_script:
   - cd build
