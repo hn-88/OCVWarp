@@ -42,6 +42,8 @@ install:
    - cmake ..
    - make -j4
    - sudo make install
+   - cd ..
+   - cd .. 
   
 before_script:
   - cd build
