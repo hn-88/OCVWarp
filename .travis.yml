@@ -11,16 +11,37 @@ install:
 
 # OpenCV install code (modified from orignal source: https://github.com/jayrambhia/Install-OpenCV)
 
-  # OpenCV dependencies - Details available at: http://docs.opencv.org/trunk/doc/tutorials/introduction/linux_install/linux_install.html
-  - sudo apt-get install -y build-essential
-  - sudo apt-get install -y cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
-  - sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
-  - sudo apt-get install -y libusb-1.0-0-dev libusb-1.0-0
-  #- sudo apt-get install -y libopencv-dev # without ppa, this iinstalls 2.4 on xenial, need > 3.0 for video support. 
-  # from https://launchpad.net/~timsc/+archive/ubuntu/opencv-3.3
-  # for 3.3, Due to a packaging bug, please install using:
-  - sudo apt-get install -y libopencv-dev libopencv-shape-dev libopencv-dnn-dev
-  
+  # install opencv 3.4
+# from https://docs.opencv.org/3.4/d2/de6/tutorial_py_setup_in_ubuntu.html
+   - sudo apt-get install -y cmake
+   - sudo apt-get install -y gcc g++
+   - sudo apt-get install -y ffmpeg
+   - sudo apt-get install -y python-dev python-numpy
+
+   - sudo apt-get install -y python3-dev python3-numpy
+
+   - sudo apt-get install -y libavcodec-dev libavformat-dev libswscale-dev
+   - sudo apt-get install -y libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev
+
+   - sudo apt-get install -y libgtk2.0-dev
+
+   - sudo apt-get install -y libgtk-3-dev
+   - sudo apt-get install -y libpng-dev
+   - sudo apt-get install -y libjpeg-dev
+   - sudo apt-get install -y libopenexr-dev
+   - sudo apt-get install -y libtiff-dev
+   - sudo apt-get install -y libwebp-dev
+   - sudo apt-get install -y libavdevice-dev
+
+   - sudo apt-get install -y git
+   
+   - git clone -b 3.4 https://github.com/opencv/opencv
+   - cd opencv
+   - mkdir build
+   - cd build
+   - cmake ..
+   - make -j4
+   - sudo make install
   
 before_script:
   - cd build
