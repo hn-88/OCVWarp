@@ -101,6 +101,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
+					// based on http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
 					xd = j - xcd;
 					yd = i - ycd;
 					if (xd == 0 && yd == 0)
@@ -133,7 +134,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	else
 	//if (transformtype == 0) is the default // Equirectangular 360 to 360 degree fisheye
 	{
-		
+			// based on http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
 			// set destination (output) centers
 			int xcd = floor(map_x.cols/2) - 1;
 			int ycd = floor(map_x.rows/2) - 1;

@@ -91,7 +91,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	// explanation comments are most verbose in the last 
 	// default (transformtype == 0) section
 	
-	if (transformtype == 3)	// 180 degree fisheye to Equirectangular  
+	if (transformtype == 3)	//  fisheye to Equirectangular - dual output - using parallel projection
 	{
 		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
 		// int ycd = floor(map_x.rows/2) - 1 + angley;
@@ -129,7 +129,9 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					
 					// map_x.at<float>(i, j) = R * cos(theta); this maps to [-1, 1]
 					//map_x.at<float>(i, j) = R * cos(theta) * map_x.cols / 2 + xcd;
-					map_x.at<float>(i, j) = Px * map_x.cols / 2 + xcd;
+					map_x.at<float>(i, j) = - Px * map_x.cols / 2 + xcd;
+					
+					// this gives two copies in final output, top one reasonably correct
 					
 					// map_y.at<float>(i, j) = R * sin(theta); this maps to [-1, 1]
 					//map_y.at<float>(i, j) = R * sin(theta) * map_x.rows / 2 + ycd;
@@ -184,13 +186,11 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					// map_x.at<float>(i, j) = R * cos(theta); this maps to [-1, 1]
 					map_x.at<float>(i, j) =  R * cos(theta) * map_x.cols / 2 + xcd;
 					
-					
-					//map_x.at<float>(i, j) = -Px * map_x.cols / 2 + xcd; 
-					// needed to make -Px, or else left right inverted. 
+					// currently upside down 
 					
 					// map_y.at<float>(i, j) = R * sin(theta); this maps to [-1, 1]
 					map_y.at<float>(i, j) =  R * sin(theta) * map_x.rows / 2 + ycd;
-					//map_y.at<float>(i, j) = Py * map_x.rows / 2 + ycd;
+					
 					
 				 } // for j
 				   
