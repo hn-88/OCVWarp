@@ -91,6 +91,113 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	// explanation comments are most verbose in the last 
 	// default (transformtype == 0) section
 	
+	if (transformtype == 3)	// 180 degree fisheye to Equirectangular  
+	{
+		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
+		// int ycd = floor(map_x.rows/2) - 1 + angley;
+		int xcd = floor(map_x.cols/2) - 1 ;
+		int ycd = floor(map_x.rows/2) - 1 ;
+		int xd, yd;
+		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
+		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
+		float rad_per_px = CV_PI / map_x.rows;
+		float rd, theta, phiang, temp;
+		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
+		float aperture = CV_PI;
+		
+		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+			{
+				for ( int j = 0; j < map_x.cols; j++ )
+				{
+					longi 	= (CV_PI    ) * (j - xcd) / (map_x.cols/2) + anglex;		// longi = x.pi for 360 image
+					lat	 	= (CV_PI / 2) * (i - ycd) / (map_x.rows/2) + angley;		// lat = y.pi/2
+					
+					Px = cos(lat)*cos(longi);
+					Py = cos(lat)*sin(longi);
+					Pz = sin(lat);
+					
+					if (Px == 0 && Py == 0 && Pz == 0)
+						R = 0;
+					else 
+						R = 2 * atan2(sqrt(Px*Px + Pz*Pz), Py) / aperture; 	
+					
+					if (Px == 0 && Pz ==0)
+						theta = 0;
+					else
+						theta = atan2(Pz, Px);
+						
+					
+					// map_x.at<float>(i, j) = R * cos(theta); this maps to [-1, 1]
+					//map_x.at<float>(i, j) = R * cos(theta) * map_x.cols / 2 + xcd;
+					map_x.at<float>(i, j) = Px * map_x.cols / 2 + xcd;
+					
+					// map_y.at<float>(i, j) = R * sin(theta); this maps to [-1, 1]
+					//map_y.at<float>(i, j) = R * sin(theta) * map_x.rows / 2 + ycd;
+					map_y.at<float>(i, j) = Py * map_x.rows / 2 + ycd;
+					
+				 } // for j
+				   
+			} // for i
+			
+	}
+
+	if (transformtype == 2)	// 360 degree fisheye to Equirectangular 360 
+	{
+		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
+		// int ycd = floor(map_x.rows/2) - 1 + angley;
+		int xcd = floor(map_x.cols/2) - 1 ;
+		int ycd = floor(map_x.rows/2) - 1 ;
+		int xd, yd;
+		float px_per_theta = map_x.cols  / (2*CV_PI); 	//  width = map_x.cols 
+		float px_per_phi   = map_x.rows / CV_PI;		//  height = PI for equirect 360
+		float rad_per_px = CV_PI / map_x.rows;
+		float rd, theta, phiang, temp;
+		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
+		float aperture = 2*CV_PI;
+		
+		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+			{
+				for ( int j = 0; j < map_x.cols; j++ )
+				{
+					longi 	= (CV_PI    ) * (j - xcd) / (map_x.cols/2) + anglex;		// longi = x.pi for 360 image
+					lat	 	= (CV_PI / 2) * (i - ycd) / (map_x.rows/2) + angley;		// lat = y.pi/2
+					
+					Px = cos(lat)*cos(longi);
+					Py = cos(lat)*sin(longi);
+					Pz = sin(lat);
+					
+					if (Px == 0 && Py == 0 && Pz == 0)
+						R = 0;
+					else 
+						R = 2 * atan2(sqrt(Px*Px + Py*Py), Pz) / aperture; 
+						// exchanged Py and Pz from Paul's co-ords, 	
+						// from Perspective projection the wrong imaging model 10.1.1.52.8827.pdf
+						// http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.8827&rep=rep1&type=pdf
+						// Or else, Africa ends up sideways, and with the far east and west streched out on top and bottom
+					
+					if (Px == 0 && Pz ==0)
+						theta = 0;
+					else
+						theta = atan2(Py, Px);
+						
+					
+					// map_x.at<float>(i, j) = R * cos(theta); this maps to [-1, 1]
+					map_x.at<float>(i, j) =  R * cos(theta) * map_x.cols / 2 + xcd;
+					
+					
+					//map_x.at<float>(i, j) = -Px * map_x.cols / 2 + xcd; 
+					// needed to make -Px, or else left right inverted. 
+					
+					// map_y.at<float>(i, j) = R * sin(theta); this maps to [-1, 1]
+					map_y.at<float>(i, j) =  R * sin(theta) * map_x.rows / 2 + ycd;
+					//map_y.at<float>(i, j) = Py * map_x.rows / 2 + ycd;
+					
+				 } // for j
+				   
+			} // for i
+			
+	}
+
 	if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
 	{
 		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
@@ -103,43 +210,53 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float rad_per_px = CV_PI / map_x.rows;
 		float rd, theta, phiang, temp;
 		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
-		float aperture = 1;
+		float aperture = CV_PI;
 		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
-					longi 	= CV_PI * (j - xcd) / (map_x.cols/2) + anglex;		// longi = x.pi
-					lat	 	= (CV_PI / 2) * (i - ycd)/(map_x.rows/2) + angley;	// lat = y.pi/2
-					
-					Px = cos(lat)*cos(longi);
-					Py = cos(lat)*sin(longi);
-					Pz = sin(lat);
-					
-					if (Px == 0 && Py == 0 && Pz == 0)
-						R = 0;
-					else 
-						R = 2 * atan2(sqrt(Px*Px + Pz*Pz), Py) / aperture; 	
-					
-					if (Px == 0)
-						theta = 0;
+					xd = j - xcd;
+					yd = i - ycd;
+					if (xd == 0 && yd == 0)
+					{
+						theta = 0 + anglex*CV_PI/180;;
+						rd = 0;
+					}
 					else
-						theta = atan2(Pz, Px);
-						
+					{
+						//theta = atan2(float(yd),float(xd)); // this sets orig to east
+						// so America, at left of globe, becomes centred
+						theta = atan2(xd,yd) + anglex*CV_PI/180;; // this sets orig to north
+						// makes the fisheye left/right flipped if atan2(-xd,yd)
+						// so that Africa is centred when anglex = 0.
+						rd = sqrt(float(xd*xd + yd*yd));
+					}
 					
-					// map_x.at<float>(i, j) = R * cos(theta); this maps to [-1, 1]
-					map_x.at<float>(i, j) = R * cos(theta) * map_x.cols / 2 + xcd;
+					// move theta to [-pi, pi]
+					theta = fmod(theta+3*CV_PI, 2*CV_PI);
+					if (theta < 0)
+						theta = theta + CV_PI;
+					theta = theta - CV_PI;	
 					
-					// map_y.at<float>(i, j) = R * sin(theta); this maps to [-1, 1]
-					map_y.at<float>(i, j) = R * sin(theta) * map_x.rows / 2 + ycd;
+					phiang = rad_per_px * rd;
+					
+					map_x.at<float>(i, j) = (float)round((map_x.cols) + theta * px_per_theta);
+					
+					//map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
+					// this above makes the south pole the centre.
+					
+					map_y.at<float>(i, j) = phiang * px_per_phi;
+					// this above makes the north pole the centre of the fisheye
+					
 					
 				 } // for j
 				   
 			} // for i
 			
 	}
-	else
-	//if (transformtype == 0) is the default // Equirectangular 360 to 360 degree fisheye
+	//else
+	if (transformtype == 0) // the default // Equirectangular 360 to 360 degree fisheye
 	{
 		
 			// set destination (output) centers
@@ -260,7 +377,7 @@ int main(int argc,char *argv[])
 	////////////////////////////////////////////////////////////////////
 	// Initializing variables
 	////////////////////////////////////////////////////////////////////
-	bool doneflag = 0, interactivemode = 0;
+	bool doneflag = 0, interactivemode = 1;
     double anglex = 0;
     double angley = 0;
     
@@ -365,7 +482,13 @@ int main(int argc,char *argv[])
 	int t_start, t_end;
     unsigned long long framenum = 0;
      
-    Mat src, res;
+    Mat src, res, tmp;
+    Rect centreofimg;
+    centreofimg.x = floor(outputw/2) - 1;
+    centreofimg.y = 0;
+    centreofimg.width=outputw;
+    centreofimg.height=outputh;
+    
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
     Mat map_x(Sout, CV_32FC1);
@@ -391,8 +514,19 @@ int main(int argc,char *argv[])
 		switch (transformtype)
 				{
 
+				case 3: // 360 fisheye to Equirect
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					//res = tmp(centreofimg);
+					break;
+					
+				case 2: // 360 fisheye to Equirect
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					//res = tmp(centreofimg);
+					break;
+					
 				case 1: // Equirect to 180 fisheye
 					resize( src, res, Size(outputw*2, outputh), 0, 0, INTER_AREA);
+					//res = tmp(centreofimg);
 					break;
 				
 				default:	
