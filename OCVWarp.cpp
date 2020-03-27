@@ -200,55 +200,49 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 
 	if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
 	{
-		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
-		// int ycd = floor(map_x.rows/2) - 1 + angley;
+		// using the transformations at
+		// http://paulbourke.net/dome/dualfish2sphere/diagram.pdf
 		int xcd = floor(map_x.cols/2) - 1 ;
 		int ycd = floor(map_x.rows/2) - 1 ;
-		int xd, yd;
-		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
-		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
-		float rad_per_px = CV_PI / map_x.rows;
-		float rd, theta, phiang, temp;
-		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
+		float halfcols = map_x.cols/2;
+		float halfrows = map_x.rows/2;
+		
+		
+		float longi, lat, Px, Py, Pz, R, theta;						// X and Y are map_x and map_y
+		float xfish, yfish, rfish, phi, xequi, yequi;
 		float aperture = CV_PI;
 		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
-					xd = j - xcd;
-					yd = i - ycd;
-					if (xd == 0 && yd == 0)
+					// normalizing to [-1, 1]
+					xfish = (j - xcd) / halfcols;
+					yfish = (i - ycd) / halfrows;
+					rfish = sqrt(xfish*xfish + yfish*yfish);
+					theta = atan2(yfish, xfish);
+					phi = rfish*aperture/2;
+					
+					Px = cos(phi)*cos(theta);
+					Py = cos(phi)*sin(theta);
+					Pz = sin(phi);
+					
+					longi 	= atan2(Py, Px);
+					lat	 	=  atan2(sqrt(Px*Px + Py*Py), Pz);	// this gives south pole centred 
+					
+					xequi = longi / CV_PI;
+					// this maps to [-1, 1]
+					yequi = 2*lat / CV_PI;
+					// this maps to [-1, 0] for south pole
+					
+					if (rfish <= 1)		// outside that circle, let it be black
 					{
-						theta = 0 + anglex*CV_PI/180;;
-						rd = 0;
+						map_x.at<float>(i, j) =  -xequi * map_x.cols / 2 + xcd;
+						//map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
+						// this gets south pole centred view
+						
+						map_y.at<float>(i, j) =  -yequi * map_x.rows / 2 + ycd;
 					}
-					else
-					{
-						//theta = atan2(float(yd),float(xd)); // this sets orig to east
-						// so America, at left of globe, becomes centred
-						theta = atan2(xd,yd) + anglex*CV_PI/180;; // this sets orig to north
-						// makes the fisheye left/right flipped if atan2(-xd,yd)
-						// so that Africa is centred when anglex = 0.
-						rd = sqrt(float(xd*xd + yd*yd));
-					}
-					
-					// move theta to [-pi, pi]
-					theta = fmod(theta+3*CV_PI, 2*CV_PI);
-					if (theta < 0)
-						theta = theta + CV_PI;
-					theta = theta - CV_PI;	
-					
-					phiang = rad_per_px * rd;
-					
-					map_x.at<float>(i, j) = (float)round((map_x.cols) + theta * px_per_theta);
-					
-					//map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
-					// this above makes the south pole the centre.
-					
-					map_y.at<float>(i, j) = phiang * px_per_phi;
-					// this above makes the north pole the centre of the fisheye
-					
 					
 				 } // for j
 				   
@@ -377,7 +371,7 @@ int main(int argc,char *argv[])
 	////////////////////////////////////////////////////////////////////
 	// Initializing variables
 	////////////////////////////////////////////////////////////////////
-	bool doneflag = 0, interactivemode = 1;
+	bool doneflag = 0, interactivemode = 0;
     double anglex = 0;
     double angley = 0;
     
@@ -493,8 +487,16 @@ int main(int argc,char *argv[])
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
     Mat map_x(Sout, CV_32FC1);
     Mat map_y(Sout, CV_32FC1);
+    Mat dst_x, dst_y;
+    
+    map_x = Scalar(outputw+outputh);
+    map_y = Scalar(outputw+outputh);
+    // initializing so that it points outside the image
+    // so that unavailable pixels will be black
     
     update_map(anglex, angley, map_x, map_y, transformtype);
+    convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+        
     t_start = time(NULL);
 	fps = 0;
 	
@@ -508,6 +510,8 @@ int main(int argc,char *argv[])
         if(interactivemode)
         {
 			update_map(anglex, angley, map_x, map_y, transformtype);
+			convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+    
 			interactivemode = 0;
 		}
 		
@@ -525,7 +529,7 @@ int main(int argc,char *argv[])
 					break;
 					
 				case 1: // Equirect to 180 fisheye
-					resize( src, res, Size(outputw*2, outputh), 0, 0, INTER_AREA);
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
 					//res = tmp(centreofimg);
 					break;
 				
@@ -536,7 +540,7 @@ int main(int argc,char *argv[])
 					
 				}
 		
-        remap( res, dst, map_x, map_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+        remap( res, dst, dst_x, dst_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
         
         imshow("Display", dst);
         //std::cout << "\x1B[2K"; // Erase the entire current line.
