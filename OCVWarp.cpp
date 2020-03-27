@@ -211,6 +211,14 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float longi, lat, Px, Py, Pz, R, theta;						// X and Y are map_x and map_y
 		float xfish, yfish, rfish, phi, xequi, yequi;
 		float aperture = CV_PI;
+		float angleyrad = angley*CV_PI/180;
+		float anglexrad = anglex*CV_PI/180;
+		
+		Mat inputmatrix, rotationmatrix, outputmatrix;
+		// https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations
+		//rotationmatrix = (Mat_<float>(3,3) << cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad)); //y
+		//rotationmatrix = (Mat_<float>(3,3) << 1, 0, 0, 0, cos(angleyrad), -sin(angleyrad), 0, sin(angleyrad), cos(angleyrad)); //x
+		//rotationmatrix = (Mat_<float>(3,3) << cos(angleyrad), -sin(angleyrad), 0, sin(angleyrad), cos(angleyrad), 0, 0, 0, 1); //z
 		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
@@ -220,15 +228,30 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					xfish = (j - xcd) / halfcols;
 					yfish = (i - ycd) / halfrows;
 					rfish = sqrt(xfish*xfish + yfish*yfish);
-					theta = atan2(yfish, xfish);
+					theta = atan2(yfish, xfish) + anglexrad;
 					phi = rfish*aperture/2;
 					
 					Px = cos(phi)*cos(theta);
 					Py = cos(phi)*sin(theta);
 					Pz = sin(phi);
+					/* this does not work - produced a pinched effect
+					if(angley!=0)
+					{
+						inputmatrix = (Mat_<float>(3,1) << Px, Py, Pz);
+						
+						// rotate the 3D point around y axis by angley
+						outputmatrix = rotationmatrix * inputmatrix;
+						
+						Px = outputmatrix.at<float>(0,0);
+						Py = outputmatrix.at<float>(1,0);
+						Pz = outputmatrix.at<float>(2,0);
+					}
+					* */
 					
 					longi 	= atan2(Py, Px);
-					lat	 	=  atan2(sqrt(Px*Px + Py*Py), Pz);	// this gives south pole centred 
+					lat	 	= atan2(sqrt(Px*Px + Py*Py), Pz);	
+					// this gives south pole centred, ie yequi goes from [-1, 0]
+					// Made into north pole centred by - in the final map_y assignment
 					
 					xequi = longi / CV_PI;
 					// this maps to [-1, 1]
@@ -252,7 +275,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	//else
 	if (transformtype == 0) // the default // Equirectangular 360 to 360 degree fisheye
 	{
-		
+		// using code adapted from http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
 			// set destination (output) centers
 			int xcd = floor(map_x.cols/2) - 1;
 			int ycd = floor(map_x.rows/2) - 1;
@@ -294,7 +317,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					yd = i - ycd;
 					if (xd == 0 && yd == 0)
 					{
-						theta = 0 + anglex*CV_PI/180;;
+						theta = 0 + anglex*CV_PI/180;
 						rd = 0;
 					}
 					else
