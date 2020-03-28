@@ -214,7 +214,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float angleyrad = angley*CV_PI/180;
 		float anglexrad = anglex*CV_PI/180;
 		
-		Mat inputmatrix, rotationmatrix, outputmatrix;
+		//Mat inputmatrix, rotationmatrix, outputmatrix;
 		// https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations
 		//rotationmatrix = (Mat_<float>(3,3) << cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad)); //y
 		//rotationmatrix = (Mat_<float>(3,3) << 1, 0, 0, 0, cos(angleyrad), -sin(angleyrad), 0, sin(angleyrad), cos(angleyrad)); //x
@@ -231,10 +231,18 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					theta = atan2(yfish, xfish) + anglexrad;
 					phi = rfish*aperture/2;
 					
+					// Paul's co-ords
+					
 					Px = cos(phi)*cos(theta);
 					Py = cos(phi)*sin(theta);
 					Pz = sin(phi);
-					/* this does not work - produced a pinched effect
+					
+					// standard co-ords
+					//Px = sin(phi)*cos(theta);
+					//Py = sin(phi)*sin(theta);
+					//Pz = cos(phi);
+					// this does not work - produced a pinched effect 
+					/*
 					if(angley!=0)
 					{
 						inputmatrix = (Mat_<float>(3,1) << Px, Py, Pz);
@@ -246,12 +254,12 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 						Py = outputmatrix.at<float>(1,0);
 						Pz = outputmatrix.at<float>(2,0);
 					}
-					* */
+					*/
 					
 					longi 	= atan2(Py, Px);
 					lat	 	= atan2(sqrt(Px*Px + Py*Py), Pz);	
 					// this gives south pole centred, ie yequi goes from [-1, 0]
-					// Made into north pole centred by - in the final map_y assignment
+					// Made into north pole centred by - (minus) in the final map_y assignment
 					
 					xequi = longi / CV_PI;
 					// this maps to [-1, 1]
