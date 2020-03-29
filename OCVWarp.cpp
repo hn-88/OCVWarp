@@ -210,9 +210,10 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		
 		float longi, lat, Px, Py, Pz, R, theta;						// X and Y are map_x and map_y
 		float xfish, yfish, rfish, phi, xequi, yequi;
+		float PxR, PyR, PzR;
 		float aperture = CV_PI;
-		float angleyrad = angley*CV_PI/180;
-		float anglexrad = anglex*CV_PI/180;
+		float angleyrad = -angley*CV_PI/180;	// made these minus for more intuitive feel
+		float anglexrad = -anglex*CV_PI/180;
 		
 		//Mat inputmatrix, rotationmatrix, outputmatrix;
 		// https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations
@@ -228,36 +229,36 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					xfish = (j - xcd) / halfcols;
 					yfish = (i - ycd) / halfrows;
 					rfish = sqrt(xfish*xfish + yfish*yfish);
-					theta = atan2(yfish, xfish) + anglexrad;
+					theta = atan2(yfish, xfish);
 					phi = rfish*aperture/2;
 					
-					// Paul's co-ords
+					// Paul's co-ords - this is suitable when phi=0 is Pz=0
 					
-					Px = cos(phi)*cos(theta);
-					Py = cos(phi)*sin(theta);
-					Pz = sin(phi);
+					//Px = cos(phi)*cos(theta);
+					//Py = cos(phi)*sin(theta);
+					//Pz = sin(phi);
 					
-					// standard co-ords
-					//Px = sin(phi)*cos(theta);
-					//Py = sin(phi)*sin(theta);
-					//Pz = cos(phi);
-					// this does not work - produced a pinched effect 
-					/*
-					if(angley!=0)
+					// standard co-ords - this is suitable when phi=pi/2 is Pz=0
+					Px = sin(phi)*cos(theta);
+					Py = sin(phi)*sin(theta);
+					Pz = cos(phi);
+					
+					if(angley!=0 || anglex!=0)
 					{
-						inputmatrix = (Mat_<float>(3,1) << Px, Py, Pz);
+						// cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad));
 						
-						// rotate the 3D point around y axis by angley
-						outputmatrix = rotationmatrix * inputmatrix;
+						PxR = Px;
+						PyR = cos(angleyrad) * Py - sin(angleyrad) * Pz;
+						PzR = sin(angleyrad) * Py + cos(angleyrad) * Pz;
 						
-						Px = outputmatrix.at<float>(0,0);
-						Py = outputmatrix.at<float>(1,0);
-						Pz = outputmatrix.at<float>(2,0);
+						Px = cos(anglexrad) * PxR - sin(anglexrad) * PyR;
+						Py = sin(anglexrad) * PxR + cos(anglexrad) * PyR;
+						Pz = PzR;
 					}
-					*/
+					
 					
 					longi 	= atan2(Py, Px);
-					lat	 	= atan2(sqrt(Px*Px + Py*Py), Pz);	
+					lat	 	= atan2(Pz,sqrt(Px*Px + Py*Py));	
 					// this gives south pole centred, ie yequi goes from [-1, 0]
 					// Made into north pole centred by - (minus) in the final map_y assignment
 					
@@ -268,11 +269,11 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					
 					if (rfish <= 1)		// outside that circle, let it be black
 					{
-						map_x.at<float>(i, j) =  -xequi * map_x.cols / 2 + xcd;
+						map_x.at<float>(i, j) =  xequi * map_x.cols / 2 + xcd;
 						//map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
 						// this gets south pole centred view
 						
-						map_y.at<float>(i, j) =  -yequi * map_x.rows / 2 + ycd;
+						map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
 					}
 					
 				 } // for j
