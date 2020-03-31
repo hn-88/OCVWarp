@@ -11,6 +11,8 @@ make OCVWarpNorth.bin
 ```
 Initial behaviour and parameters are set using OCVWarp.ini in the build folder.
 
+A file open dialog asks you for the input file. The output file is put in the same directory, with F.avi appended to the input filename. The codec used for the output is the same codec as for the input if available on your system. (If the same codec is not available, the output is saved as an uncompressed avi, which can quickly become huge. I hope to change this behaviour soon :)
+
 Keyboard commands are
 ```
 ESC, x or X to exit
