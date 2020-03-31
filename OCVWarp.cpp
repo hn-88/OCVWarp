@@ -1,10 +1,7 @@
 #ifdef _WIN64
-#include "stdafx.h"
-// anything before a precompiled header is ignored, 
-// so no endif here! add #endif to compile on __unix__ !
+#include "windows.h"
 #endif
-#ifdef _WIN64
-#endif
+
 
 
 /*
