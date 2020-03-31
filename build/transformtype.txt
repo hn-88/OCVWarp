@@ -1,0 +1,9 @@
+The last parameter in OCVWarp.ini is the transform type. This can have the following values.
+
+0  for EquirectTo360Fisheye
+1  for EquirectTo180Fisheye
+2  for 360FisheyeToEquirect
+3  for 180FisheyeToEquirect
+
+
+Equirect stands for Equirectangular 360 projected images that have the full 360 degree x 180 degree view (2:1 ratio)
