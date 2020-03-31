@@ -19,5 +19,6 @@ build:
 artifacts:
 
 - path: x64\Release\OCVWarpNorth.exe
+- path: x64\Release\OCVWarp.exe
 
 
