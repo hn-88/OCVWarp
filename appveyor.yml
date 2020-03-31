@@ -12,8 +12,10 @@ install:
 - cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x64\vc14
 - refreshenv
 
-build:
+before_build:
   project: OCVWarpNorth.vcxproj
+  
+build:
   project: OCVWarp.vcxproj
 
   verbosity: minimal
