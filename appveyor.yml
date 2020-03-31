@@ -11,9 +11,6 @@ install:
 - choco install opencv --version=3.4.3
 - cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x64\vc14
 - refreshenv
-
-before_build:
-  project: OCVWarpNorth.vcxproj
   
 build:
   project: OCVWarp.vcxproj
@@ -21,8 +18,6 @@ build:
   verbosity: minimal
  
 artifacts:
-
-- path: x64\Release\OCVWarpNorth.exe
 - path: x64\Release\OCVWarp.exe
 
 
