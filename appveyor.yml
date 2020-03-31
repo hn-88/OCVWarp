@@ -13,6 +13,8 @@ install:
 - refreshenv
 
 build:
+  project: OCVWarpNorth.vcxproj
+  project: OCVWarp.vcxproj
 
   verbosity: minimal
  
