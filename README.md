@@ -8,6 +8,7 @@ cd build
 cmake ..
 make OCVWarp.bin
 make OCVWarpNorth.bin
+make getfourcc.bin
 ```
 Initial behaviour and parameters are set using OCVWarp.ini in the build folder.
 
