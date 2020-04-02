@@ -35,7 +35,7 @@ install:
 
    - sudo apt-get install -y git
    
-   - git clone -b 'v3.4.9' --single-branch --depth 1 https://github.com/opencv/opencv
+   - git clone -b '3.4.9' --single-branch --depth 1 https://github.com/opencv/opencv
    - cd opencv
    - mkdir build
    - cd build
