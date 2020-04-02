@@ -63,7 +63,7 @@ int main(int argc,char *argv[])
     Size Sout = Size(640,480);            
     VideoWriter outputVideo;                                        // Open the output
     if (askOutputType)
-        outputVideo.open(NAME, outputVideo.fourcc('X', 'V', 'I', 'D'), 25, Sout, true);
+        outputVideo.open(NAME, -1 , 25, Sout, true);
     else
         outputVideo.open(NAME, ex, 25, Sout, true);
     if (!outputVideo.isOpened())
