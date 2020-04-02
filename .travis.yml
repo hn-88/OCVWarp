@@ -51,6 +51,7 @@ before_script:
 
 script: 
   - make OCVWarp.bin
+  - make getfourcc.bin 
   # modified from https://github.com/lupoDharkael/smilla-enlarger/pull/2/files
   - mkdir -p appdir/usr/bin ; strip OCVWarp.bin ; cp OCVWarp.bin ./appdir/usr/bin/
   - mkdir -p appdir/usr/share/applications ; cp ../appdir/OCVWarp.desktop ./appdir/usr/share/applications/
@@ -61,7 +62,18 @@ script:
   - export VERSION=$(git rev-parse --short HEAD) # linuxdeployqt uses this for naming the file
   - ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -bundle-non-qt-libs
   - ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage
+  
+  - mkdir -p appdir2/usr/bin ; strip getfourcc.bin ; cp getfourcc.bin ./appdir2/usr/bin/
+  - mkdir -p appdir2/usr/share/applications ; cp ../appdir/getfourcc.desktop ./appdir2/usr/share/applications/
+  - mkdir -p appdir2/usr/share/icons/hicolor/256x256/apps ; cp ../appdir/OCVWarp.png ./appdir2/usr/share/icons/hicolor/256x256/apps/
+  
+  - unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+  - export VERSION=$(git rev-parse --short HEAD) # linuxdeployqt uses this for naming the file
+  - ./linuxdeployqt-continuous-x86_64.AppImage appdir2/usr/share/applications/*.desktop -bundle-non-qt-libs
+  - ./linuxdeployqt-continuous-x86_64.AppImage appdir2/usr/share/applications/*.desktop -appimage
+  
 
 after_success:
   - find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-  - curl --upload-file OCVWarp*.AppImage https://transfer.sh/OCVWarp1.20-x86_64.AppImage
+  - curl --upload-file OCVWarp*.AppImage https://transfer.sh/OCVWarp1.30-x86_64.AppImage
+  - curl --upload-file getfourcc*.AppImage https://transfer.sh/getfourcc1.30-x86_64.AppImage
