@@ -410,7 +410,14 @@ int main(int argc,char *argv[])
     std::string tempstring;
     char anglexstr[40];
     char angleystr[40];
-    const bool askOutputType = argv[3][0] =='N';  // If false it will use the inputs codec type
+    char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
+    outputfourccstr[0] = 'N';
+    outputfourccstr[1] = 'U';
+    outputfourccstr[2] = 'L';
+    outputfourccstr[3] = 'L';
+    
+    const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
+    // askOutputType=1 works only on Windows currently
     
     std::ifstream infile("OCVWarp.ini");
     
@@ -436,6 +443,8 @@ int main(int argc,char *argv[])
 			infile >> outputh;
 			infile >> tempstring;
 			infile >> transformtype;
+			infile >> tempstring;
+			infile >> outputfourccstr;
 			infile.close();
 			
 			anglex = atof(anglexstr);
@@ -443,6 +452,8 @@ int main(int argc,char *argv[])
 		  }
 
 	else std::cout << "Unable to open ini file, using defaults." << std::endl;
+	
+	std::cout << "Output codec type: " << outputfourccstr << std::endl;
 	
 	namedWindow("Display", WINDOW_NORMAL | WINDOW_KEEPRATIO); // 0 = WINDOW_NORMAL
 	resizeWindow("Display", 640, 640); 
@@ -488,8 +499,12 @@ int main(int argc,char *argv[])
                   (int) inputVideo.get(CAP_PROP_FRAME_HEIGHT));
     Size Sout = Size(outputw,outputh);            
     VideoWriter outputVideo;                                        // Open the output
-    if (askOutputType)
-        outputVideo.open(NAME, ex=-1, inputVideo.get(CAP_PROP_FPS), Sout, true);
+    if (!(outputfourccstr[0] == 'N' &&
+    outputfourccstr[1] == 'U' &&
+    outputfourccstr[2] == 'L' &&
+    outputfourccstr[3] == 'L'))
+        outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
+        inputVideo.get(CAP_PROP_FPS), Sout, true);
     else
         outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
     if (!outputVideo.isOpened())
