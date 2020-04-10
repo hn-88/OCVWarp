@@ -39,7 +39,7 @@ install:
    - cd opencv
    - mkdir build
    - cd build
-   - cmake ..
+   - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF ..
    - make -j4
    - sudo make install
    - cd ..
@@ -74,6 +74,13 @@ script:
   
 
 after_success:
-  - find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-  - curl --upload-file OCVWarp*.AppImage https://transfer.sh/OCVWarp1.30-x86_64.AppImage
-  - curl --upload-file getfourcc*.AppImage https://transfer.sh/getfourcc1.30-x86_64.AppImage
+  #- find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
+  #- curl --upload-file OCVWarp*.AppImage https://transfer.sh/OCVWarp1.30-x86_64.AppImage
+  #- curl --upload-file getfourcc*.AppImage https://transfer.sh/getfourcc1.30-x86_64.AppImage
+deploy:
+  provider: releases
+  token: $mytokenname
+  file_glob: true
+  file: *.AppImage
+  draft: true
+  edge: true
