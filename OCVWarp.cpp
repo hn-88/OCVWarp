@@ -83,10 +83,130 @@ y = 2 * latitude / PI
 
 using namespace cv;
 
+// some global variables
+
+std::string strpathtowarpfile;
+Mat meshu, meshv, meshx, meshy, meshi, I;
+float maxx=0, minx=0;	
+// meshx is in the range [-aspectratio, aspectratio]
+// we assume meshy is in the range [-1,1]
+// meshu and meshv in [0,1]
+
+bool ReadMesh(std::string strpathtowarpfile)
+{
+	
+	//from https://github.com/hn-88/GL_warp2Avi/blob/master/GL2AviView.cpp
+	// and http://paulbourke.net/dataformats/meshwarp/
+	FILE *input = NULL;
+
+   input = fopen(strpathtowarpfile.c_str(), "r");
+
+   /* Set rows and columns to 2 initially, as this is the size of the default mesh. */
+    int dummy, rows = 2, cols = 2;
+
+    if (input != NULL)  {
+		fscanf(input, " %d %d %d ", &dummy, &cols, &rows) ;
+		float x, y, u, v, l;
+		//meshrows=rows;
+		//meshcolumns=cols;
+
+		meshx = Mat(Size(cols,rows), CV_32FC1);	
+		meshy = Mat(Size(cols,rows), CV_32FC1);
+		meshu = Mat(Size(cols,rows), CV_32FC1);
+		meshv = Mat(Size(cols,rows), CV_32FC1);
+		meshi = Mat(Size(cols,rows), CV_32FC1);
+
+	     for (int r = 0; r < rows ; r++) {
+             for (int c = 0; c < cols ; c++) {
+		                
+                fscanf(input, "%f %f %f %f %f", &x, &y, &u, &v, &l) ;   
+                
+                if (x<minx)
+					minx = x;
+				else
+				if (x>maxx)
+					maxx = x;
+                
+                //~ mesh[cols*r+c].x = x;
+                //~ mesh[cols*r+c].y = y;
+                //~ mesh[cols*r+c].u = u;
+                //~ mesh[cols*r+c].v = v;
+                //~ mesh[cols*r+c].i = l;
+                meshx.at<float>(r,c) = x;
+                meshy.at<float>(r,c) = y;
+                meshu.at<float>(r,c) = u;
+                meshv.at<float>(r,c) = v;
+                meshi.at<float>(r,c) = l;
+ 
+			}
+			 
+		}
+		
+	}
+	else // unable to read mesh
+	{
+		std::cout << "Unable to read mesh data file (similar to EP_xyuv_1920.map), exiting!" << std::endl;
+		exit(0);
+	}
+}
+
 void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int transformtype )
 {
 	// explanation comments are most verbose in the last 
 	// default (transformtype == 0) section
+	
+	if (transformtype == 4)	//  fisheye to warped
+	{
+		// similar to TGAWarp at http://paulbourke.net/dome/tgawarp/
+		//
+		
+		Mat U, V, X, Y, IC1;
+		Mat indexu, indexv, indexx, indexy, temp;
+		ReadMesh(strpathtowarpfile);
+		resize(meshx, X, map_x.size(), INTER_CUBIC);
+		resize(meshy, Y, map_x.size(), INTER_CUBIC);
+		resize(meshu, U, map_x.size(), INTER_CUBIC);
+		resize(meshv, V, map_x.size(), INTER_CUBIC);
+		resize(meshi, IC1, map_x.size(), INTER_CUBIC);
+		
+		// I.convertTo(I, CV_32FC3); //this doesn't work 	
+		//convert to 3 channel Mat, for later multiplication
+		// https://stackoverflow.com/questions/23303305/opencv-element-wise-matrix-multiplication/23310109
+		Mat t[] = {IC1, IC1, IC1};
+		merge(t, 3, I);
+		
+		// map the values which are [minx,maxx] to [0,map_x.cols-1]
+		temp = map_x.cols*(X - minx)/(maxx-minx) - 1;
+		temp.convertTo(indexx, CV_32S);		// this does the rounding to int
+		
+		temp = map_x.rows*(Y +1)/(2) - 1;	// assuming miny=-1, maxy=1
+		temp.convertTo(indexy, CV_32S);
+		
+		temp = map_x.cols*U - 1;	// assuming minu=0, maxu=1
+		temp.convertTo(indexu, CV_32S);		// this does the rounding to int
+		
+		temp = map_x.rows*V - 1;	// assuming minv=0, maxv=1
+		temp.convertTo(indexv, CV_32S);
+		
+		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+			{
+				for ( int j = 0; j < map_x.cols; j++ )
+				{
+					//~ map_x.at<float>(i, j) = (float)(j); // this just maps input to output
+				    //~ map_y.at<float>(i, j) = (float)(i); 
+				    if ( (indexx.at<int>(i,j) >= 0 ) && (indexx.at<int>(i,j) < map_x.cols )
+						&& (indexu.at<int>(i,j) >= 0 ) && (indexu.at<int>(i,j) < map_x.cols )
+						&& (indexy.at<int>(i,j) >= 0 ) && (indexy.at<int>(i,j) < map_x.rows )
+						&& (indexv.at<int>(i,j) >= 0 ) && (indexv.at<int>(i,j) < map_x.rows ) )
+					{	
+				    map_x.at<float>(indexy.at<int>(i,j), indexx.at<int>(i,j)) = (float) indexu.at<int>(i,j);
+				    map_y.at<float>(indexy.at<int>(i,j), indexx.at<int>(i,j)) = (float) indexv.at<int>(i,j);
+				    }
+				}
+			}
+		return;
+	}
+		
 	
 	if (transformtype == 3)	//  fisheye to Equirectangular - dual output - using parallel projection
 	{
@@ -408,6 +528,8 @@ int main(int argc,char *argv[])
     int outputh = 1080;
     
     std::string tempstring;
+    //std::string strpathtowarpfile; making this a global var
+    strpathtowarpfile = "EP_xyuv_1920.map";
     char anglexstr[40];
     char angleystr[40];
     char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
@@ -445,6 +567,8 @@ int main(int argc,char *argv[])
 			infile >> transformtype;
 			infile >> tempstring;
 			infile >> outputfourccstr;
+			infile >> tempstring;
+			infile >> strpathtowarpfile;
 			infile.close();
 			
 			anglex = atof(anglexstr);
@@ -456,7 +580,7 @@ int main(int argc,char *argv[])
 	std::cout << "Output codec type: " << outputfourccstr << std::endl;
 	
 	namedWindow("Display", WINDOW_NORMAL | WINDOW_KEEPRATIO); // 0 = WINDOW_NORMAL
-	resizeWindow("Display", 640, 640); 
+	resizeWindow("Display", round(outputw/outputh*600), 600); // this doesn't work?
 	moveWindow("Display", 0, 0);
 	
 	char const * FilterPatterns[2] =  { "*.avi","*.*" };
@@ -521,20 +645,25 @@ int main(int argc,char *argv[])
     unsigned long long framenum = 0;
      
     Mat src, res, tmp;
-    Rect centreofimg;
-    centreofimg.x = floor(outputw/2) - 1;
-    centreofimg.y = 0;
-    centreofimg.width=outputw;
-    centreofimg.height=outputh;
+    Mat dstfloat;
     
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
-    Mat map_x(Sout, CV_32FC1);
-    Mat map_y(Sout, CV_32FC1);
+    Mat map_x, map_y;
+    if (transformtype == 4)
+    {
+		map_x = Mat(Size(outputw*2,outputh*2), CV_32FC1);	// for 2x resampling
+		map_y = Mat(Size(outputw*2,outputh*2), CV_32FC1);
+	}
+	else
+	{
+		map_x = Mat(Sout, CV_32FC1);
+		map_y = Mat(Sout, CV_32FC1);
+	}
     Mat dst_x, dst_y;
     
-    map_x = Scalar(outputw+outputh);
-    map_y = Scalar(outputw+outputh);
+    map_x = Scalar((outputw+outputh)*10);
+    map_y = Scalar((outputw+outputh)*10);
     // initializing so that it points outside the image
     // so that unavailable pixels will be black
     
@@ -561,30 +690,47 @@ int main(int argc,char *argv[])
 		
 		switch (transformtype)
 				{
+				case 4: // 180 fisheye to warped
+					// the transform needs a flipped source image, flipud
+					flip(src, src, 0);	// because the mesh assumes 0,0 is bottom left
+					resize( src, res, Size(outputw*2, outputh*2), 0, 0, INTER_CUBIC);
+					//res = tmp(centreofimg);
+					break;
 
 				case 3: // 360 fisheye to Equirect
-					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
 					//res = tmp(centreofimg);
 					break;
 					
 				case 2: // 360 fisheye to Equirect
-					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
 					//res = tmp(centreofimg);
 					break;
 					
 				case 1: // Equirect to 180 fisheye
-					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
 					//res = tmp(centreofimg);
 					break;
 				
 				default:	
 				case 0: // Equirect to 360 fisheye
-					resize( src, res, Size(outputw, outputh), 0, 0, INTER_AREA);
+					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
 					break;
 					
 				}
 		
         remap( res, dst, dst_x, dst_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+        if(transformtype == 4)
+        {
+			// multiply by the intensity Mat
+			dst.convertTo(dstfloat, CV_32FC3);
+			multiply(dstfloat, I, dstfloat);
+			dstfloat.convertTo(dst, CV_8UC3);
+			// this transform is 2x2 oversampled
+			resize(dst, dst, Size(), 0.5, 0.5, INTER_AREA);
+			flip(dst, dst, 0); 	// flip up down again
+		}
+			
         
         imshow("Display", dst);
         //std::cout << "\x1B[2K"; // Erase the entire current line.
