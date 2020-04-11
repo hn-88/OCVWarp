@@ -527,6 +527,8 @@ int main(int argc,char *argv[])
     int outputw = 1920;
     int outputh = 1080;
     
+    int texturew = 2048;
+    
     std::string tempstring;
     //std::string strpathtowarpfile; making this a global var
     strpathtowarpfile = "EP_xyuv_1920.map";
@@ -645,15 +647,26 @@ int main(int argc,char *argv[])
     unsigned long long framenum = 0;
      
     Mat src, res, tmp;
-    Mat dstfloat;
+    Mat dstfloat, dstmult, dstres, dstflip;
     
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
     Mat map_x, map_y;
     if (transformtype == 4)
     {
-		map_x = Mat(Size(outputw*2,outputh*2), CV_32FC1);	// for 2x resampling
-		map_y = Mat(Size(outputw*2,outputh*2), CV_32FC1);
+		//~ map_x = Mat(Size(outputw*2,outputh*2), CV_32FC1);	// for 2x resampling
+		//~ map_y = Mat(Size(outputw*2,outputh*2), CV_32FC1);
+		// the above code causes gridlines to appear in output
+		if (outputw<961)	//1K
+			texturew = 1024;
+		else if (outputw<1921)	//2K
+			texturew = 2048;
+		else if (outputw<3841)	//4K
+			texturew = 4096;
+		else // (outputw<7681)	//8K
+			texturew = 8192;
+		map_x = Mat(Size(texturew,texturew), CV_32FC1);	// for upsampling
+		map_y = Mat(Size(texturew,texturew), CV_32FC1);
 	}
 	else
 	{
@@ -693,7 +706,7 @@ int main(int argc,char *argv[])
 				case 4: // 180 fisheye to warped
 					// the transform needs a flipped source image, flipud
 					flip(src, src, 0);	// because the mesh assumes 0,0 is bottom left
-					resize( src, res, Size(outputw*2, outputh*2), 0, 0, INTER_CUBIC);
+					resize( src, res, Size(texturew, texturew), 0, 0, INTER_CUBIC);
 					//res = tmp(centreofimg);
 					break;
 
@@ -724,11 +737,11 @@ int main(int argc,char *argv[])
         {
 			// multiply by the intensity Mat
 			dst.convertTo(dstfloat, CV_32FC3);
-			multiply(dstfloat, I, dstfloat);
-			dstfloat.convertTo(dst, CV_8UC3);
+			multiply(dstfloat, I, dstmult);
+			dstmult.convertTo(dstres, CV_8UC3);
 			// this transform is 2x2 oversampled
-			resize(dst, dst, Size(), 0.5, 0.5, INTER_AREA);
-			flip(dst, dst, 0); 	// flip up down again
+			resize(dstres, dstflip, Size(outputw,outputh), 0, 0, INTER_AREA);
+			flip(dstflip, dst, 0); 	// flip up down again
 		}
 			
         
