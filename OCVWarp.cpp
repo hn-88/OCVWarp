@@ -163,11 +163,13 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		Mat U, V, X, Y, IC1;
 		Mat indexu, indexv, indexx, indexy, temp;
 		ReadMesh(strpathtowarpfile);
-		resize(meshx, X, map_x.size(), INTER_CUBIC);
-		resize(meshy, Y, map_x.size(), INTER_CUBIC);
-		resize(meshu, U, map_x.size(), INTER_CUBIC);
-		resize(meshv, V, map_x.size(), INTER_CUBIC);
-		resize(meshi, IC1, map_x.size(), INTER_CUBIC);
+		resize(meshx, X, map_x.size(), INTER_LANCZOS4);
+		resize(meshy, Y, map_x.size(), INTER_LANCZOS4);
+		//debug - changed INTER_LINEAR to INTER_LANCZOS4
+		// not much of a penalty, so we leave it in.
+		resize(meshu, U, map_x.size(), INTER_LANCZOS4);
+		resize(meshv, V, map_x.size(), INTER_LANCZOS4);
+		resize(meshi, IC1, map_x.size(), INTER_LANCZOS4);
 		
 		// I.convertTo(I, CV_32FC3); //this doesn't work 	
 		//convert to 3 channel Mat, for later multiplication
@@ -176,17 +178,23 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		merge(t, 3, I);
 		
 		// map the values which are [minx,maxx] to [0,map_x.cols-1]
-		temp = map_x.cols*(X - minx)/(maxx-minx) - 1;
+		temp = (map_x.cols-1)*(X - minx)/(maxx-minx);
 		temp.convertTo(indexx, CV_32S);		// this does the rounding to int
 		
-		temp = map_x.rows*(Y +1)/(2) - 1;	// assuming miny=-1, maxy=1
+		temp = (map_x.rows-1)*(Y+1)/2;	// assuming miny=-1, maxy=1
 		temp.convertTo(indexy, CV_32S);
 		
-		temp = map_x.cols*U - 1;	// assuming minu=0, maxu=1
+		temp = (map_x.cols-1)*U;	// assuming minu=0, maxu=1
 		temp.convertTo(indexu, CV_32S);		// this does the rounding to int
 		
-		temp = map_x.rows*V - 1;	// assuming minv=0, maxv=1
+		temp = (map_x.rows-1)*V;	// assuming minv=0, maxv=1
 		temp.convertTo(indexv, CV_32S);
+		
+		// debug
+		//~ imwrite("indexx.png", indexx);
+		//~ imwrite("indexy.png", indexy);
+		//~ imwrite("indexu.png", indexu);
+		//~ imwrite("indexv.png", indexv);
 		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
@@ -194,14 +202,51 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 				{
 					//~ map_x.at<float>(i, j) = (float)(j); // this just maps input to output
 				    //~ map_y.at<float>(i, j) = (float)(i); 
+				    
+				    // in the following, we assume indexx.at<int>(i,j) = j
+				    // and indexy.at<int>(i,j) = i
+				    // otherwise, a mesh effect due to discontinuities in indexx and indexy.
+				    // The if statement is just a sanity check.
 				    if ( (indexx.at<int>(i,j) >= 0 ) && (indexx.at<int>(i,j) < map_x.cols )
 						&& (indexu.at<int>(i,j) >= 0 ) && (indexu.at<int>(i,j) < map_x.cols )
 						&& (indexy.at<int>(i,j) >= 0 ) && (indexy.at<int>(i,j) < map_x.rows )
 						&& (indexv.at<int>(i,j) >= 0 ) && (indexv.at<int>(i,j) < map_x.rows ) )
 					{	
-				    map_x.at<float>(indexy.at<int>(i,j), indexx.at<int>(i,j)) = (float) indexu.at<int>(i,j);
-				    map_y.at<float>(indexy.at<int>(i,j), indexx.at<int>(i,j)) = (float) indexv.at<int>(i,j);
-				    }
+						map_x.at<float>(i,j) = (float) indexu.at<int>(i,j);
+						map_y.at<float>(i,j) = (float) indexv.at<int>(i,j);
+						//debug
+						//~ if ((indexx.at<int>(i,j) == 73) && (indexy.at<int>(i,j) == 75) )
+						//~ {
+							//~ std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
+							//~ std::cout << "x,y,u,v=";
+							//~ std::cout << indexx.at<int>(i,j) << ", ";
+							//~ std::cout << indexy.at<int>(i,j) << ", ";
+							//~ std::cout << indexu.at<int>(i,j) << ", ";
+							//~ std::cout << indexv.at<int>(i,j) << std::endl;
+						//~ }
+						//~ if (i==75)
+						 //~ if (j<80 && j>=0)
+						 //~ {
+							//~ std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
+							//~ std::cout << "x,y,u,v=";
+							//~ std::cout << indexx.at<int>(i,j) << ", ";
+							//~ std::cout << indexy.at<int>(i,j) << ", ";
+							//~ std::cout << indexu.at<int>(i,j) << ", ";
+							//~ std::cout << indexv.at<int>(i,j) << std::endl;
+						//~ }
+							
+				    } // end if
+				    
+				    //~ else
+				    //~ {
+						//debug
+						//~ std::cout << "skipped(" <<i<< "," << j << ")" <<std::endl;
+						//~ std::cout << "x,y,u,v=";
+						//~ std::cout << indexx.at<int>(i,j) << ", ";
+						//~ std::cout << indexy.at<int>(i,j) << ", ";
+						//~ std::cout << indexu.at<int>(i,j) << ", ";
+						//~ std::cout << indexv.at<int>(i,j) << std::endl;
+					//~ }
 				}
 			}
 		return;
@@ -659,12 +704,15 @@ int main(int argc,char *argv[])
 		// the above code causes gridlines to appear in output
 		if (outputw<961)	//1K
 			texturew = 1024;
+			//~ // debug
+			//~ texturew = outputw;
 		else if (outputw<1921)	//2K
 			texturew = 2048;
 		else if (outputw<3841)	//4K
 			texturew = 4096;
 		else // (outputw<7681)	//8K
 			texturew = 8192;
+			// debug - had set Size to outputw,h
 		map_x = Mat(Size(texturew,texturew), CV_32FC1);	// for upsampling
 		map_y = Mat(Size(texturew,texturew), CV_32FC1);
 	}
@@ -681,7 +729,9 @@ int main(int argc,char *argv[])
     // so that unavailable pixels will be black
     
     update_map(anglex, angley, map_x, map_y, transformtype);
-    convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+    //convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+    dst_x = map_x;
+    dst_y = map_y;
         
     t_start = time(NULL);
 	fps = 0;
@@ -706,6 +756,7 @@ int main(int argc,char *argv[])
 				case 4: // 180 fisheye to warped
 					// the transform needs a flipped source image, flipud
 					flip(src, src, 0);	// because the mesh assumes 0,0 is bottom left
+					//debug - had changed to outputw, h
 					resize( src, res, Size(texturew, texturew), 0, 0, INTER_CUBIC);
 					//res = tmp(centreofimg);
 					break;
@@ -738,6 +789,8 @@ int main(int argc,char *argv[])
 			// multiply by the intensity Mat
 			dst.convertTo(dstfloat, CV_32FC3);
 			multiply(dstfloat, I, dstmult);
+			//debug
+			//dstmult = dstfloat;
 			dstmult.convertTo(dstres, CV_8UC3);
 			// this transform is 2x2 oversampled
 			resize(dstres, dstflip, Size(outputw,outputh), 0, 0, INTER_AREA);
