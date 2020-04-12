@@ -80,6 +80,8 @@ deploy:
   provider: releases
   token: $mytokenname
   file_glob: true
-  file: *.AppImage
-  draft: true
+  file: O*.AppImage
+  #draft: true
+  on:
+    tags: true
   edge: true
