@@ -33,7 +33,7 @@
 // https://docs.opencv.org/3.4.9/d1/da0/tutorial_remap.html
 // https://stackoverflow.com/questions/60221/how-to-animate-the-command-line
 // https://stackoverflow.com/questions/11498169/dealing-with-angle-wrap-in-c-code
-
+// https://blog.kowalczyk.info/article/j/guide-to-predefined-macros-in-c-compilers-gcc-clang-msvc-etc..html
 
 // Pertinent equations from pano2fisheye:
 // fov=180 for fisheye
@@ -687,6 +687,20 @@ int main(int argc,char *argv[])
 	std::string escapedpath = escaped(std::string(OpenFileName));
 	VideoCapture inputVideo(escapedpath.c_str());              // Open input
 #endif
+
+#ifdef __MINGW32__
+	// Here, OpenCV on Windows needs escaped file paths. 
+	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	std::string escapedpath = escaped(std::string(OpenFileName));
+	VideoCapture inputVideo(escapedpath.c_str());              // Open input
+#endif
+#ifdef __MINGW64__
+	// Here, OpenCV on Windows needs escaped file paths. 
+	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	std::string escapedpath = escaped(std::string(OpenFileName));
+	VideoCapture inputVideo(escapedpath.c_str());              // Open input
+#endif
+
 	
 	if (!inputVideo.isOpened())
     {
@@ -701,6 +715,15 @@ int main(int argc,char *argv[])
 	// Here, OpenCV on Windows needs escaped file paths. 
 	std::string OpenFileNamestr = escapedpath; 
 #endif   
+#ifdef __MINGW32__
+	// Here, OpenCV on Windows needs escaped file paths. 
+	std::string OpenFileNamestr = escapedpath; 
+#endif   
+#ifdef __MINGW64__
+	// Here, OpenCV on Windows needs escaped file paths. 
+	std::string OpenFileNamestr = escapedpath; 
+#endif   
+
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
     const std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
     int ex = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));     // Get Codec Type- Int form
@@ -724,6 +747,27 @@ int main(int argc,char *argv[])
 	// OpenCV on Windows can ask for a suitable fourcc. 
 	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
 #endif  
+#ifdef __MINGW32__
+    if (!(outputfourccstr[0] == 'N' &&
+    outputfourccstr[1] == 'U' &&
+    outputfourccstr[2] == 'L' &&
+    outputfourccstr[3] == 'L'))
+        outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
+        inputVideo.get(CAP_PROP_FPS), Sout, true);
+    else
+        outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
+#endif
+#ifdef __MINGW64__
+    if (!(outputfourccstr[0] == 'N' &&
+    outputfourccstr[1] == 'U' &&
+    outputfourccstr[2] == 'L' &&
+    outputfourccstr[3] == 'L'))
+        outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
+        inputVideo.get(CAP_PROP_FPS), Sout, true);
+    else
+        outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
+#endif
+
     if (!outputVideo.isOpened())
     {
         std::cout  << "Could not open the output video for write: " << NAME << std::endl;
@@ -864,7 +908,7 @@ int main(int argc,char *argv[])
 		else
         std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << std::flush;
 #endif
-              
+        
        //outputVideo.write(res); //save or
        outputVideo << dst;
        
