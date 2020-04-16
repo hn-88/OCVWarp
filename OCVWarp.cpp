@@ -585,8 +585,10 @@ int main(int argc,char *argv[])
     outputfourccstr[2] = 'L';
     outputfourccstr[3] = 'L';
     
-    const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
+    //const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
+    // this line above causes the windows build to not run! although it compiles ok.
     // askOutputType=1 works only on Windows currently
+    const bool askOutputType = 0;
     
     std::ifstream infile("OCVWarp.ini");
     
