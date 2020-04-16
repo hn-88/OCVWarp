@@ -722,7 +722,8 @@ int main(int argc,char *argv[])
 #endif
 #ifdef _WIN64
 	// OpenCV on Windows can ask for a suitable fourcc. 
-	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
+	// But lots of problems with paths. So, just a filename. 
+	outputVideo.open("output.avi", -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
 #endif  
     if (!outputVideo.isOpened())
     {
