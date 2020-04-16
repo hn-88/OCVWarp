@@ -710,6 +710,7 @@ int main(int argc,char *argv[])
                   (int) inputVideo.get(CAP_PROP_FRAME_HEIGHT));
     Size Sout = Size(outputw,outputh);            
     VideoWriter outputVideo;                                        // Open the output
+#ifdef __unix__
     if (!(outputfourccstr[0] == 'N' &&
     outputfourccstr[1] == 'U' &&
     outputfourccstr[2] == 'L' &&
@@ -718,6 +719,11 @@ int main(int argc,char *argv[])
         inputVideo.get(CAP_PROP_FPS), Sout, true);
     else
         outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
+#endif
+#ifdef _WIN64
+	// OpenCV on Windows can ask for a suitable fourcc. 
+	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
+#endif  
     if (!outputVideo.isOpened())
     {
         std::cout  << "Could not open the output video for write: " << NAME << std::endl;
