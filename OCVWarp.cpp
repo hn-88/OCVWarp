@@ -560,6 +560,28 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
     
 } // end function updatemap
 
+std::string escaped(const std::string& input)
+{
+	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+    std::string output;
+    output.reserve(input.size());
+    for (const char c: input) {
+        switch (c) {
+            case '\a':  output += "\\a";        break;
+            case '\b':  output += "\\b";        break;
+            case '\f':  output += "\\f";        break;
+            case '\n':  output += "\\n";        break;
+            case '\r':  output += "\\r";        break;
+            case '\t':  output += "\\t";        break;
+            case '\v':  output += "\\v";        break;
+            default:    output += c;            break;
+        }
+    }
+
+    return output;
+}
+
+
 int main(int argc,char *argv[])
 {
 	////////////////////////////////////////////////////////////////////
@@ -655,14 +677,30 @@ int main(int argc,char *argv[])
 	// reference:
 	// https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
 	
+#ifdef __unix__
+	
 	VideoCapture inputVideo(OpenFileName);              // Open input
+#endif
+#ifdef _WIN64
+	// Here, OpenCV on Windows needs escaped file paths. 
+	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	std::string escapedpath = escaped(std::string(OpenFileName));
+	VideoCapture inputVideo(escapedpath.c_str());              // Open input
+#endif
+	
 	if (!inputVideo.isOpened())
     {
         std::cout  << "Could not open the input video: " << OpenFileName << std::endl;
         return -1;
     }
      
-    std::string OpenFileNamestr = OpenFileName;    
+#ifdef __unix__
+    std::string OpenFileNamestr = OpenFileName; 
+#endif
+#ifdef _WIN64
+	// Here, OpenCV on Windows needs escaped file paths. 
+	std::string OpenFileNamestr = escapedpath; 
+#endif   
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
     const std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
     int ex = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));     // Get Codec Type- Int form
@@ -682,7 +720,7 @@ int main(int argc,char *argv[])
         outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
     if (!outputVideo.isOpened())
     {
-        std::cout  << "Could not open the output video for write: " << OpenFileName << std::endl;
+        std::cout  << "Could not open the output video for write: " << NAME << std::endl;
         return -1;
     }
     std::cout << "Input frame resolution: Width=" << S.width << "  Height=" << S.height
