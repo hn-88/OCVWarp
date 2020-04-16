@@ -893,20 +893,26 @@ int main(int argc,char *argv[])
 #ifdef __unix__
         std::cout << "\x1B[0E"; // Move to the beginning of the current line.
 #else
-		std::cout << std::endl;
+		//std::cout << std::endl;
 #endif
         
         fps++;
         t_end = time(NULL);
 		if (t_end - t_start >= 5)
 		{
+#ifdef __unix__
 			std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::flush;
+#else
+			std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::endl;
+#endif
 			t_start = time(NULL);
 			fps = 0;
 		}
-#ifdef __unix__		
 		else
-        std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << std::flush;
+#ifdef __unix__		
+		std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << std::flush;
+#else
+        framenum++; 
 #endif
         
        //outputVideo.write(res); //save or
