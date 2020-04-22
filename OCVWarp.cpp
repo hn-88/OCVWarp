@@ -725,7 +725,39 @@ int main(int argc,char *argv[])
 #endif   
 
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
-    const std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
+    std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
+    
+    // here, we give an option for the user to choose the output file
+    // path as well as type (container, like mp4, mov, avi).
+    char const * SaveFileName = tinyfd_saveFileDialog(
+		"Now enter the output video file name, like output.mp4",
+		"",
+		0,
+		NULL,
+		NULL);
+
+	if (! SaveFileName)
+	{
+		tinyfd_messageBox(
+			"No output file chosen.",
+			"Will be saved as inputfilename + F.avi",
+			"ok",
+			"info",
+			1);
+		 
+	}
+	else
+	{
+#ifdef __unix__
+	NAME = std::string(SaveFileName);
+#else
+	// for Windows, escape the \ characters in the path
+	escapedpath = escaped(std::string(SaveFileName));
+	NAME = escapedpath;
+#endif
+	}
+	
+    
     int ex = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));     // Get Codec Type- Int form
     // Transform from int to char via Bitwise operators
     char EXT[] = {(char)(ex & 0XFF) , (char)((ex & 0XFF00) >> 8),(char)((ex & 0XFF0000) >> 16),(char)((ex & 0XFF000000) >> 24), 0};
