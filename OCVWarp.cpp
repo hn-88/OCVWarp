@@ -87,6 +87,7 @@ using namespace cv;
 
 std::string strpathtowarpfile;
 Mat meshu, meshv, meshx, meshy, meshi, I;
+Mat map2x, map2y;
 float maxx=0, minx=0;	
 // meshx is in the range [-aspectratio, aspectratio]
 // we assume meshy is in the range [-1,1]
@@ -154,8 +155,30 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 {
 	// explanation comments are most verbose in the last 
 	// default (transformtype == 0) section
-	
-	if (transformtype == 4)	//  fisheye to warped
+	switch (transformtype)
+	{
+	case 5: // 360 to 180 fisheye and then to warped
+	//if (transformtype == 5)	
+	{
+		// create temp maps to the texture and then map from texture to output
+		// this will need 2 remaps at the output side
+		// and two sets of map files
+		
+		// the map file for the first remap has to change with change of anglex angley
+		// the second one, for fisheye to warped, doesn't need to be recalculated.
+		
+		// so, update_map is called first to initialize map_x and map_y
+		// using transformtype = 4
+		
+		// and later, and at all other times, only the map to the texture is updated.
+		
+		update_map( anglex, angley, map2x, map2y, 1 );
+		
+	}
+		break;
+		
+	case 4:
+	//if (transformtype == 4)	//  fisheye to warped
 	{
 		// similar to TGAWarp at http://paulbourke.net/dome/tgawarp/
 		//
@@ -251,9 +274,10 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 			}
 		return;
 	}
+	break;
 		
-	
-	if (transformtype == 3)	//  fisheye to Equirectangular - dual output - using parallel projection
+	case 3:
+	//if (transformtype == 3)	//  fisheye to Equirectangular - dual output - using parallel projection
 	{
 		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
 		// int ycd = floor(map_x.rows/2) - 1 + angley;
@@ -304,8 +328,10 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 			} // for i
 			
 	}
-
-	if (transformtype == 2)	// 360 degree fisheye to Equirectangular 360 
+	break;
+	
+	case 2:
+	//if (transformtype == 2)	// 360 degree fisheye to Equirectangular 360 
 	{
 		// int xcd = floor(map_x.cols/2) - 1 + anglex;	// this just 'pans' the view
 		// int ycd = floor(map_x.rows/2) - 1 + angley;
@@ -359,8 +385,10 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 			} // for i
 			
 	}
-
-	if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
+	break;
+	
+	case 1:
+	//if (transformtype == 1)	// Equirectangular 360 to 180 degree fisheye
 	{
 		// using the transformations at
 		// http://paulbourke.net/dome/dualfish2sphere/diagram.pdf
@@ -443,8 +471,12 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 			} // for i
 			
 	}
+	break;
+	
+	case 0:
+	default:
 	//else
-	if (transformtype == 0) // the default // Equirectangular 360 to 360 degree fisheye
+	//if (transformtype == 0) // the default // Equirectangular 360 to 360 degree fisheye
 	{
 		// using code adapted from http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
 			// set destination (output) centers
@@ -531,6 +563,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
             
      
      } // end of if transformtype == 0
+	}	// end switch case
     
     
 // debug
@@ -818,8 +851,9 @@ int main(int argc,char *argv[])
     
     std::vector<Mat> spl;
     Mat dst(Sout, CV_8UC3); // S = src.size, and src.type = CV_8UC3
+    Mat dst2;	// temp dst, for double remap
     Mat map_x, map_y;
-    if (transformtype == 4)
+    if ((transformtype == 4) || (transformtype == 5) ) 
     {
 		//~ map_x = Mat(Size(outputw*2,outputh*2), CV_32FC1);	// for 2x resampling
 		//~ map_y = Mat(Size(outputw*2,outputh*2), CV_32FC1);
@@ -837,6 +871,10 @@ int main(int argc,char *argv[])
 			// debug - had set Size to outputw,h
 		map_x = Mat(Size(texturew,texturew), CV_32FC1);	// for upsampling
 		map_y = Mat(Size(texturew,texturew), CV_32FC1);
+		if (transformtype == 5)
+		{
+			dst2 = Mat(Size(texturew,texturew), CV_32FC1);
+		}
 	}
 	else
 	{
@@ -844,21 +882,43 @@ int main(int argc,char *argv[])
 		map_y = Mat(Sout, CV_32FC1);
 	}
     Mat dst_x, dst_y;
-    
+    // Mat map2x, map2y // these are made global vars 
+    Mat dst2x, dst2y;	// for transformtype=5, double remap
+    if (transformtype == 5) 
+    {
+		map2x = Mat(Size(texturew,texturew), CV_32FC1);	
+		map2y = Mat(Size(texturew,texturew), CV_32FC1);
+		map2x = Scalar((texturew+texturew)*10);
+		map2y = Scalar((texturew+texturew)*10);
+		// initializing so that it points outside the image
+		// so that unavailable pixels will be black
+	}
+	
     map_x = Scalar((outputw+outputh)*10);
     map_y = Scalar((outputw+outputh)*10);
     // initializing so that it points outside the image
     // so that unavailable pixels will be black
     
-    update_map(anglex, angley, map_x, map_y, transformtype);
-    //convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
-    dst_x = map_x;
-    dst_y = map_y;
-        
+    if (transformtype == 5) 
+    {
+		update_map(anglex, angley, map_x, map_y, 4);
+		// first initialize map_x and map_y for final warp,
+		// which is exactly like transformtype=4
+		update_map(anglex, angley, map2x, map2y, 5);
+		convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+		convertMaps(map2x, map2y, dst2x, dst2y, CV_16SC2);
+		
+	}
+	else
+	{
+		update_map(anglex, angley, map_x, map_y, transformtype);
+		convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+	}
+    
     t_start = time(NULL);
 	fps = 0;
 	
-    for(;;) //Show the image captured in the window and repeat
+    for(;;)
     {
         inputVideo >> src;              // read
         if (src.empty()) break;         // check if at end
@@ -867,35 +927,44 @@ int main(int argc,char *argv[])
         
         if(interactivemode)
         {
+			if (transformtype==5)
+			{
+				// only map2 needs to be updated
+			update_map(anglex, angley, map2x, map2y, 5);
+			convertMaps(map2x, map2y, dst2x, dst2y, CV_16SC2);	// supposed to make it faster to remap
+			}
+			else
+			{
 			update_map(anglex, angley, map_x, map_y, transformtype);
 			convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
+			}
     
 			interactivemode = 0;
 		}
 		
 		switch (transformtype)
 				{
+				case 5: // 360 to 180 fisheye and then to warped
+					resize( src, res, Size(texturew, texturew), 0, 0, INTER_CUBIC);
+					break;
+
 				case 4: // 180 fisheye to warped
 					// the transform needs a flipped source image, flipud
 					flip(src, src, 0);	// because the mesh assumes 0,0 is bottom left
 					//debug - had changed to outputw, h
 					resize( src, res, Size(texturew, texturew), 0, 0, INTER_CUBIC);
-					//res = tmp(centreofimg);
 					break;
 
 				case 3: // 360 fisheye to Equirect
 					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
-					//res = tmp(centreofimg);
 					break;
 					
 				case 2: // 360 fisheye to Equirect
 					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
-					//res = tmp(centreofimg);
 					break;
 					
 				case 1: // Equirect to 180 fisheye
 					resize( src, res, Size(outputw, outputh), 0, 0, INTER_CUBIC);
-					//res = tmp(centreofimg);
 					break;
 				
 				default:	
@@ -904,9 +973,20 @@ int main(int argc,char *argv[])
 					break;
 					
 				}
-		
+		if (transformtype == 5)
+		{
+			// here we have two remaps
+			remap( res, dst2, dst2x, dst2y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+			// the second remap needs flipping, like transformtype=4
+			flip(dst2, dst2, 0);	// because the mesh assumes 0,0 is bottom left
+			remap( dst2, dst, dst_x, dst_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
+		}
+		else
+		{
         remap( res, dst, dst_x, dst_y, INTER_LINEAR, BORDER_CONSTANT, Scalar(0, 0, 0) );
-        if(transformtype == 4)
+		}
+	
+        if ((transformtype == 4) || (transformtype == 5) )
         {
 			// multiply by the intensity Mat
 			dst.convertTo(dstfloat, CV_32FC3);
