@@ -5,6 +5,7 @@ The transform type parameter in OCVWarp.ini can have the following values.
 2  for 360FisheyeToEquirect
 3  for 180FisheyeToEquirect
 4  for 180Fisheye (fulldome) to warped file similar to TGAWarp at http://paulbourke.net/dome/tgawarp/ - this requires a map file similar to the included EP_xyuv_1920.map.
+5  for Equirect to warped file - equivalent to doing 1 followed by 4
 
 
 Equirect stands for Equirectangular 360 projected images that have the full 360 degree x 180 degree view (2:1 ratio)
