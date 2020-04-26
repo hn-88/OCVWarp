@@ -1081,23 +1081,12 @@ int main(int argc,char *argv[])
         if(showdisplay)
 			imshow("Display", dst);
 			
-        //std::cout << "\x1B[2K"; // Erase the entire current line.
-//~ #ifdef __unix__
-        //~ std::cout << "\x1B[0E"; // Move to the beginning of the current line.
-//~ #else
-		//~ //std::cout << std::endl;
-//~ #endif
-		printf("\r");
+        printf("\r");
         
         fps++;
         t_end = time(NULL);
 		if (t_end - t_start >= 5)
 		{
-//~ #ifdef __unix__
-			//~ std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::flush;
-//~ #else
-			//~ std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::endl;
-//~ #endif
 			printf("Frame: %llu x: %.0f y: %.0f fps: %.1f           \r", framenum++, anglex, angley, float(fps)/5 );
 			// extra spaces to delete previous line's characters if any
 			fflush(stdout);
@@ -1105,11 +1094,11 @@ int main(int argc,char *argv[])
 			fps = 0;
 		}
 		else
-#ifdef __unix__		
-		std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << std::flush;
-#else
-        framenum++; 
-#endif
+		{
+			printf("Frame: %llu x: %.0f y: %.0f \r", framenum++, anglex, angley, float(fps)/5 );
+			fflush(stdout);
+		}
+			
         
        //outputVideo.write(res); //save or
        outputVideo << dst;
