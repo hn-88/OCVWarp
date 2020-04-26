@@ -495,116 +495,179 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	{
 		// using code adapted from http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
 			// set destination (output) centers
-			int xcd = floor(map_x.cols/2) - 1;
-			int ycd = floor(map_x.rows/2) - 1;
-			int xd, yd;
-			//define destination (output) coordinates center relative xd,yd
-			// "xd= x - xcd;"
-			// "yd= y - ycd;"
+			
+			//~ // changing this to code based on Paul's diagram in version 2.1
+			//      so that anglex and angley both work
+			//////////////////////////////////////////////////////////////
+			
+			//~ int xcd = floor(map_x.cols/2) - 1;
+			//~ int ycd = floor(map_x.rows/2) - 1;
+			//~ int xd, yd;
+			//~ //define destination (output) coordinates center relative xd,yd
+			//~ // "xd= x - xcd;"
+			//~ // "yd= y - ycd;"
 
-			// compute input pixels per angle in radians
-			// theta ranges from -180 to 180 = 360 = 2*pi
-			// phi ranges from 0 to 90 = pi/2
-			float px_per_theta = map_x.cols / (2*CV_PI);
-			float px_per_phi   = map_x.rows / (CV_PI/2);
-			// compute destination radius and theta 
-			float rd; // = sqrt(x^2+y^2);
+			//~ // compute input pixels per angle in radians
+			//~ // theta ranges from -180 to 180 = 360 = 2*pi
+			//~ // phi ranges from 0 to 90 = pi/2
+			//~ float px_per_theta = map_x.cols / (2*CV_PI);
+			//~ float px_per_phi   = map_x.rows / (CV_PI/2);
+			//~ // compute destination radius and theta 
+			//~ float rd; // = sqrt(x^2+y^2);
 			
-			// set theta so original is north rather than east
-			float theta; //= atan2(y,x);
+			//~ // set theta so original is north rather than east
+			//~ float theta; //= atan2(y,x);
 			
-			// convert radius to phiang according to fisheye mode
-			//if projection is linear then
-			//	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
-			float rad_per_px = CV_PI / map_x.rows;
-			float phiang;     // = rad_per_px * rd;
+			//~ // convert radius to phiang according to fisheye mode
+			//~ //if projection is linear then
+			//~ //	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
+			//~ float rad_per_px = CV_PI / map_x.rows;
+			//~ float phiang;     // = rad_per_px * rd;
 			
 
-			// convert theta to source (input) xs and phi to source ys
-			// -rotate 90 aligns theta=0 with north and is faster than including in theta computation
-			// y corresponds to h-phi, so that bottom of the input is center of output
-			// xs = width + theta * px_per_theta;
-			// ys = height - phiang * px_per_phi;
+			//~ // convert theta to source (input) xs and phi to source ys
+			//~ // -rotate 90 aligns theta=0 with north and is faster than including in theta computation
+			//~ // y corresponds to h-phi, so that bottom of the input is center of output
+			//~ // xs = width + theta * px_per_theta;
+			//~ // ys = height - phiang * px_per_phi;
 			
 			
-			for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
-			{
-				for ( int j = 0; j < map_x.cols; j++ )
-				{
-					xd = j - xcd;
-					yd = i - ycd;
-					if (xd == 0 && yd == 0)
-					{
-						theta = 0 + anglex*CV_PI/180;
-						rd = 0;
-					}
-					else
-					{
-						//theta = atan2(float(yd),float(xd)); // this sets orig to east
-						// so America, at left of globe, becomes centred
-						theta = atan2(xd,yd) + anglex*CV_PI/180;; // this sets orig to north
-						// makes the fisheye left/right flipped if atan2(-xd,yd)
-						// so that Africa is centred when anglex = 0.
-						rd = sqrt(float(xd*xd + yd*yd));
-					}
-					// move theta to [-pi, pi]
-					theta = fmod(theta+CV_PI, 2*CV_PI);
-					if (theta < 0)
-						theta = theta + CV_PI;
-					theta = theta - CV_PI;	
+			//~ for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+			//~ {
+				//~ for ( int j = 0; j < map_x.cols; j++ )
+				//~ {
+					//~ xd = j - xcd;
+					//~ yd = i - ycd;
+					//~ if (xd == 0 && yd == 0)
+					//~ {
+						//~ theta = 0 + anglex*CV_PI/180;
+						//~ rd = 0;
+					//~ }
+					//~ else
+					//~ {
+						//~ //theta = atan2(float(yd),float(xd)); // this sets orig to east
+						//~ // so America, at left of globe, becomes centred
+						//~ theta = atan2(xd,yd) + anglex*CV_PI/180;; // this sets orig to north
+						//~ // makes the fisheye left/right flipped if atan2(-xd,yd)
+						//~ // so that Africa is centred when anglex = 0.
+						//~ rd = sqrt(float(xd*xd + yd*yd));
+					//~ }
+					//~ // move theta to [-pi, pi]
+					//~ theta = fmod(theta+CV_PI, 2*CV_PI);
+					//~ if (theta < 0)
+						//~ theta = theta + CV_PI;
+					//~ theta = theta - CV_PI;	
 					
-					//phiang = rad_per_px * rd + angley*CV_PI/180; // this zooms in/out, not rotate cam
-					phiang = rad_per_px * rd;
+					//~ //phiang = rad_per_px * rd + angley*CV_PI/180; // this zooms in/out, not rotate cam
+					//~ phiang = rad_per_px * rd;
 					
-					map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
+					//~ map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
 					
-					//map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
-					// this above makes the south pole the centre.
+					//~ //map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
+					//~ // this above makes the south pole the centre.
 					
-					map_y.at<float>(i, j) = phiang * px_per_phi;
-					// this above makes the north pole the centre of the fisheye
-					// map_y.at<float>(i, j) = phiang * px_per_phi - angley; //this just zooms out
+					//~ map_y.at<float>(i, j) = phiang * px_per_phi;
+					//~ // this above makes the north pole the centre of the fisheye
+					//~ // map_y.at<float>(i, j) = phiang * px_per_phi - angley; //this just zooms out
 					
 					
 					 
-				   // the following test mapping just makes the src upside down in dst
-				   // map_x.at<float>(i, j) = (float)j;
-				   // map_y.at<float>(i, j) = (float)( i); 
+				   //~ // the following test mapping just makes the src upside down in dst
+				   //~ // map_x.at<float>(i, j) = (float)j;
+				   //~ // map_y.at<float>(i, j) = (float)( i); 
 				   
+				 //~ } // for j
+				   
+			//~ } // for i
+			
+		//////////////////////////////////////
+		// the following code is similar to transformtype=1 code
+		// with only the aperture changed to 2pi	
+		int xcd = floor(map_x.cols/2) - 1 ;
+		int ycd = floor(map_x.rows/2) - 1 ;
+		float halfcols = map_x.cols/2;
+		float halfrows = map_x.rows/2;
+		
+		
+		float longi, lat, Px, Py, Pz, R, theta;						// X and Y are map_x and map_y
+		float xfish, yfish, rfish, phi, xequi, yequi;
+		float PxR, PyR, PzR;
+		float aperture = 2*CV_PI;
+		float angleyrad = -angley*CV_PI/180;	// made these minus for more intuitive feel
+		float anglexrad = -anglex*CV_PI/180;
+		
+		//Mat inputmatrix, rotationmatrix, outputmatrix;
+		// https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations
+		//rotationmatrix = (Mat_<float>(3,3) << cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad)); //y
+		//rotationmatrix = (Mat_<float>(3,3) << 1, 0, 0, 0, cos(angleyrad), -sin(angleyrad), 0, sin(angleyrad), cos(angleyrad)); //x
+		//rotationmatrix = (Mat_<float>(3,3) << cos(angleyrad), -sin(angleyrad), 0, sin(angleyrad), cos(angleyrad), 0, 0, 0, 1); //z
+		
+		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+			{
+				for ( int j = 0; j < map_x.cols; j++ )
+				{
+					// normalizing to [-1, 1]
+					xfish = (j - xcd) / halfcols;
+					yfish = (i - ycd) / halfrows;
+					rfish = sqrt(xfish*xfish + yfish*yfish);
+					theta = atan2(yfish, xfish);
+					phi = rfish*aperture/2;
+					
+					// Paul's co-ords - this is suitable when phi=0 is Pz=0
+					
+					//Px = cos(phi)*cos(theta);
+					//Py = cos(phi)*sin(theta);
+					//Pz = sin(phi);
+					
+					// standard co-ords - this is suitable when phi=pi/2 is Pz=0
+					Px = sin(phi)*cos(theta);
+					Py = sin(phi)*sin(theta);
+					Pz = cos(phi);
+					
+					if(angley!=0 || anglex!=0)
+					{
+						// cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad));
+						
+						PxR = Px;
+						PyR = cos(angleyrad) * Py - sin(angleyrad) * Pz;
+						PzR = sin(angleyrad) * Py + cos(angleyrad) * Pz;
+						
+						Px = cos(anglexrad) * PxR - sin(anglexrad) * PyR;
+						Py = sin(anglexrad) * PxR + cos(anglexrad) * PyR;
+						Pz = PzR;
+					}
+					
+					
+					longi 	= atan2(Py, Px);
+					lat	 	= atan2(Pz,sqrt(Px*Px + Py*Py));	
+					// this gives south pole centred, ie yequi goes from [-1, 0]
+					// Made into north pole centred by - (minus) in the final map_y assignment
+					
+					xequi = longi / CV_PI;
+					// this maps to [-1, 1]
+					yequi = 2*lat / CV_PI;
+					// this maps to [-1, 0] for south pole
+					
+					//if (rfish <= 1.0)		// outside that circle, let it be black
+					// removed the black circle to help transformtype=5
+					// avoid bottom pixels black
+					{
+						map_x.at<float>(i, j) =  abs(xequi * map_x.cols / 2 + xcd);
+						//map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
+						// this gets south pole centred view
+						
+						// the abs is to correct for -0.5 xequi value at longi=0
+						
+						map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
+						
+					}
+					
 				 } // for j
 				   
 			} // for i
-				
-            
-     
+	 
      } // end of if transformtype == 0
 	}	// end switch case
-    
-    
-// debug
-    /*
-    std::cout << "map_x -> " << std::endl;
-    
-    for ( int i = 0; i < map_x.rows; i+=100 ) // here, i is for y and j is for x
-    {
-        for ( int j = 0; j < map_x.cols; j+=100 )
-        {
-			std::cout << map_x.at<float>(i, j) << " " ;
-		}
-		std::cout << std::endl;
-	}
-	
-	std::cout << "map_y -> " << std::endl;
-    
-    for ( int i = 0; i < map_x.rows; i+=100 ) // here, i is for y and j is for x
-    {
-        for ( int j = 0; j < map_x.cols; j+=100 )
-        {
-			std::cout << map_y.at<float>(i, j) << " " ;
-		}
-		std::cout << std::endl;
-	}
-	* */    
     
 } // end function updatemap
 
