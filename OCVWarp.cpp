@@ -582,7 +582,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 			
 		//////////////////////////////////////
 		// the following code is similar to transformtype=1 code
-		// with only the aperture changed to 2pi	
+		// with only the "aperture" changed to 2pi	
 		int xcd = floor(map_x.cols/2) - 1 ;
 		int ycd = floor(map_x.rows/2) - 1 ;
 		float halfcols = map_x.cols/2;
@@ -699,6 +699,7 @@ int main(int argc,char *argv[])
 	// Initializing variables
 	////////////////////////////////////////////////////////////////////
 	bool doneflag = 0, interactivemode = 0;
+	bool showdisplay = 1;
     double anglex = 0;
     double angley = 0;
     
@@ -720,7 +721,7 @@ int main(int argc,char *argv[])
     
     //const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
     // this line above causes the windows build to not run! although it compiles ok.
-    // askOutputType=1 works only on Windows currently
+    // askOutputType=1 works only on Windows (vfw?) currently
     const bool askOutputType = 0;
     
     std::ifstream infile("OCVWarp.ini");
@@ -1077,24 +1078,29 @@ int main(int argc,char *argv[])
 			flip(dstflip, dst, 0); 	// flip up down again
 		}
 			
-        
-        imshow("Display", dst);
+        if(showdisplay)
+			imshow("Display", dst);
+			
         //std::cout << "\x1B[2K"; // Erase the entire current line.
-#ifdef __unix__
-        std::cout << "\x1B[0E"; // Move to the beginning of the current line.
-#else
-		//std::cout << std::endl;
-#endif
+//~ #ifdef __unix__
+        //~ std::cout << "\x1B[0E"; // Move to the beginning of the current line.
+//~ #else
+		//~ //std::cout << std::endl;
+//~ #endif
+		printf("\r");
         
         fps++;
         t_end = time(NULL);
 		if (t_end - t_start >= 5)
 		{
-#ifdef __unix__
-			std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::flush;
-#else
-			std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::endl;
-#endif
+//~ #ifdef __unix__
+			//~ std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::flush;
+//~ #else
+			//~ std::cout << "Frame: " << framenum++ << " x: " << anglex << " y: " << angley << " fps: " << fps/5 << std::endl;
+//~ #endif
+			printf("Frame: %llu x: %.0f y: %.0f fps: %.1f           \r", framenum++, anglex, angley, float(fps)/5 );
+			// extra spaces to delete previous line's characters if any
+			fflush(stdout);
 			t_start = time(NULL);
 			fps = 0;
 		}
@@ -1168,6 +1174,15 @@ int main(int argc,char *argv[])
 					// decrease anglex
 					anglex = anglex - 10.0;
 					interactivemode = 1;
+					break;	
+					
+				case 'D':
+				case 'd':
+					// toggle display
+					if(showdisplay)
+						showdisplay=0;
+					else
+						showdisplay=1;
 					break;	
 					
 				default:
