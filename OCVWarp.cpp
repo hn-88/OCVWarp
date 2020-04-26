@@ -457,13 +457,28 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					yequi = 2*lat / CV_PI;
 					// this maps to [-1, 0] for south pole
 					
-					if (rfish <= 1)		// outside that circle, let it be black
+					//if (rfish <= 1.0)		// outside that circle, let it be black
+					// removed the black circle to help transformtype=5
+					// avoid bottom pixels black
 					{
-						map_x.at<float>(i, j) =  xequi * map_x.cols / 2 + xcd;
+						map_x.at<float>(i, j) =  abs(xequi * map_x.cols / 2 + xcd);
 						//map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
 						// this gets south pole centred view
 						
+						// the abs is to correct for -0.5 xequi value at longi=0
+						
 						map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
+						//debug
+						//~ if (rfish <= 1.0/500)
+						//if ((longi==0)||(longi==CV_PI)||(longi==-CV_PI))
+						//if (lat==0)	// since these are floats, probably doesn't work
+						//~ {
+							//~ std::cout << "i,j,mapx,mapy=";
+							//~ std::cout << i << ", ";
+							//~ std::cout << j << ", ";
+							//~ std::cout << map_x.at<float>(i, j) << ", ";
+							//~ std::cout << map_y.at<float>(i, j) << std::endl;
+						//~ }
 					}
 					
 				 } // for j
