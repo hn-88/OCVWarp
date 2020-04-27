@@ -28,5 +28,6 @@ k, ] or }   to increase anglex by 1 degree - the angle seen horizontally in outp
 h, [ or {   to decrease anglex by 1 degree - the angle seen horizontally in output
 K           to increase anglex by 10 degrees
 H           to decrease anglex by 10 degrees
+d or D      to toggle display of warped file. Turning off display marginally increases processing speed.
 ```
 
