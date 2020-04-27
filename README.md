@@ -1,7 +1,7 @@
 # OCVWarp
-Warping images and videos for planetarium fulldome display using OpenCV.
+Warping images and videos for planetarium fulldome display using OpenCV. Windows and Linux binaries are available in [Releases](https://github.com/hn-88/OCVWarp/releases). The [wiki](https://github.com/hn-88/OCVWarp/wiki) has some more information. 
 
-If OpenCV and CMake are installed on your system, instructions for building:
+In case you want to build your own binaries, if OpenCV and CMake are installed on your system, instructions for building:
 
 ```
 cd build
