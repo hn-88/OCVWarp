@@ -289,18 +289,36 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float rad_per_px = CV_PI / map_x.rows;
 		float rd, theta, phiang, temp;
 		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
-		float aperture = CV_PI;
+		float PxR, PyR, PzR;
+		float aperture = CV_PI;	// this is the only change between type 2 & 3
+		float angleyrad = -angley*CV_PI/180;	// made these minus for more intuitive feel
+		float anglexrad = -anglex*CV_PI/180;
+		
 		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
-					longi 	= (CV_PI    ) * (j - xcd) / (map_x.cols/2) + anglex;		// longi = x.pi for 360 image
-					lat	 	= (CV_PI / 2) * (i - ycd) / (map_x.rows/2) + angley;		// lat = y.pi/2
+					longi 	= (CV_PI    ) * (j - xcd) / (map_x.cols/2);		// longi = x.pi for 360 image
+					lat	 	= (CV_PI / 2) * (i - ycd) / (map_x.rows/2);		// lat = y.pi/2
 					
 					Px = cos(lat)*cos(longi);
 					Py = cos(lat)*sin(longi);
 					Pz = sin(lat);
+					
+					if(angley!=0 || anglex!=0)
+					{
+						// cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad));
+						
+						PxR = Px;
+						PyR = cos(angleyrad) * Py - sin(angleyrad) * Pz;
+						PzR = sin(angleyrad) * Py + cos(angleyrad) * Pz;
+						
+						Px = cos(anglexrad) * PxR - sin(anglexrad) * PyR;
+						Py = sin(anglexrad) * PxR + cos(anglexrad) * PyR;
+						Pz = PzR;
+					}
+					
 					
 					if (Px == 0 && Py == 0 && Pz == 0)
 						R = 0;
@@ -343,18 +361,35 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float rad_per_px = CV_PI / map_x.rows;
 		float rd, theta, phiang, temp;
 		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
+		float PxR, PyR, PzR;
 		float aperture = 2*CV_PI;
+		float angleyrad = -angley*CV_PI/180;	// made these minus for more intuitive feel
+		float anglexrad = -anglex*CV_PI/180;
 		
 		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
-					longi 	= (CV_PI    ) * (j - xcd) / (map_x.cols/2) + anglex;		// longi = x.pi for 360 image
-					lat	 	= (CV_PI / 2) * (i - ycd) / (map_x.rows/2) + angley;		// lat = y.pi/2
+					longi 	= (CV_PI    ) * (j - xcd) / (map_x.cols/2);		// longi = x.pi for 360 image
+					lat	 	= (CV_PI / 2) * (i - ycd) / (map_x.rows/2);		// lat = y.pi/2
 					
 					Px = cos(lat)*cos(longi);
 					Py = cos(lat)*sin(longi);
 					Pz = sin(lat);
+					
+					if(angley!=0 || anglex!=0)
+					{
+						// cos(angleyrad), 0, sin(angleyrad), 0, 1, 0, -sin(angleyrad), 0, cos(angleyrad));
+						
+						PxR = Px;
+						PyR = cos(angleyrad) * Py - sin(angleyrad) * Pz;
+						PzR = sin(angleyrad) * Py + cos(angleyrad) * Pz;
+						
+						Px = cos(anglexrad) * PxR - sin(anglexrad) * PyR;
+						Py = sin(anglexrad) * PxR + cos(anglexrad) * PyR;
+						Pz = PzR;
+					}
+					
 					
 					if (Px == 0 && Py == 0 && Pz == 0)
 						R = 0;
@@ -1095,7 +1130,7 @@ int main(int argc,char *argv[])
 		}
 		else
 		{
-			printf("Frame: %llu x: %.0f y: %.0f \r", framenum++, anglex, angley, float(fps)/5 );
+			printf("Frame: %llu x: %.0f y: %.0f \r", framenum++, anglex, angley );
 			fflush(stdout);
 		}
 			
