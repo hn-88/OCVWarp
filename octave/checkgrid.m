@@ -6023,6 +6023,9 @@ U=warpfile(:,:,3)';
 V=warpfile(:,:,4)';
 I=warpfile(:,:,5)';
 
+printf("XYUVI initialized... ");
+fflush(stdout);
+
 %This maps X,Y to U,V with intensity I
 % so, output(U,V) = input(X,Y).*I
 
@@ -6039,8 +6042,12 @@ input = imread('Downloads/still2.png');
 inputres = imresize(flipud(input(:,:,1)), [N2,N1]);
 %imshow(inputres);
 
-xres = round(imresize((N1-1)*(X+1.77778)/1.77778/2 +1, [N2,N1] ) );
-yres = round(imresize((N2-1)*(Y+1.0)/2 +1, [N2,N1] ) );
+printf("Input read and resized... ");
+fflush(stdout);
+
+
+%xres = round(imresize((N1-1)*(X+1.77778)/1.77778/2 +1, [N2,N1] ) );
+%yres = round(imresize((N2-1)*(Y+1.0)/2 +1, [N2,N1] ) );
 %imagesc(xres); colorbar
 
 ures = round(imresize((N1-1).*U +1, [N2,N1] ) );
@@ -6049,6 +6056,8 @@ vres = round(imresize((N2-1).*V +1, [N2,N1] ) );
 
 ires = imresize(I, [N2,N1]);
 
+printf("UVI resized... \n");
+fflush(stdout);
 
 output = zeros(size(inputres));
 
@@ -6061,7 +6070,7 @@ for i=1:500  %400
   end
   
  end
- printf("i=%d...",i);
+ printf("i=%d...   \r",i);
   fflush(stdout);
 end
 
