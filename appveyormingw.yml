@@ -1,4 +1,4 @@
-version: {build}
+version: "2.11"
 
 environment:
   - name: win32
