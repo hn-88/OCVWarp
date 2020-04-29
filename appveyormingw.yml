@@ -20,7 +20,7 @@ install:
   - md build
   - cd build
   - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "MinGW Makefiles" ..
-  - make -j4
+  - mingw32-make
   - cd ..
   - cd .. 
   - SET "OpenCV_DIR=C:\opencv3.4.9\build\install"
