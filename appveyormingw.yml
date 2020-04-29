@@ -1,10 +1,19 @@
-init:
-  - SET "PATH_MINGW32=c:\MinGW\bin;c:\MinGW\usr\bin" &&
-      SET "PATH_MINGW64=c:\msys64\mingw64\bin;c:\msys64\usr\bin" &&
-      COPY C:\MinGW\bin\mingw32-make.exe C:\MinGW\bin\make.exe &&
-      COPY C:\MinGW\bin\gcc.exe C:\MinGW\bin\cc.exe
-  
+version: 1.0.{build}
+
+image: Visual Studio 2015
+configuration: Release
+platform: Win32
+
+environment:
+  QTDIR: C:\Qt\5.11\mingw53_32
+
 install:
+  - set PATH=%PATH%;%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin
+  - set CC=C:\Qt\Tools\mingw530_32\bin\gcc.exe
+  - set CXX=C:\Qt\Tools\mingw530_32\bin\g++.exe
+  - set Qt5_DIR=%QTDIR%\lib\cmake\Qt5
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin=% # trick to remove sh.exe
+  
   - ps: Start-FileDownload https://github.com/opencv/opencv/archive/3.4.9.zip
   - 7z x 3.4.9.zip
   - cd opencv-3.4.9
