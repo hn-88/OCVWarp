@@ -8,8 +8,9 @@ init:
       COPY C:\MinGW\bin\gcc.exe C:\MinGW\bin\cc.exe
   
 install:
-  - git clone -b '3.4' --single-branch --depth 1 https://github.com/opencv/opencv
-  - cd opencv
+  - ps: Start-FileDownload https://github.com/opencv/opencv/archive/3.4.9.zip
+  - 7z x 3.4.9.zip
+  - cd opencv-3.4.9
    - md build
    - cd build
    - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "MinGW Makefiles" ..
