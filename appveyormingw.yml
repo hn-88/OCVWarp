@@ -18,7 +18,7 @@ install:
    - cd .. 
    - SET "OpenCV_DIR=C:\opencv3.4.9\build\install"
    
-script:
+build_script:
   - cd build
   - cmake ..
   - make OCVWarp.bin
