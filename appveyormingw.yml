@@ -5,8 +5,6 @@ environment:
     platform: mingw
     
 init:
-  - # set PATH=C:\Qt\5.5\%qt%\bin;C:\dev\dependencies\vlc-qt\bin;%PATH%
-  - # set ORIGPATH=%PATH%
   - SET "PATH_MINGW32=c:\MinGW\bin;c:\MinGW\usr\bin" &&
       SET "PATH_MINGW64=c:\msys64\mingw64\bin;c:\msys64\usr\bin" &&
       COPY C:\MinGW\bin\mingw32-make.exe C:\MinGW\bin\make.exe &&
@@ -19,7 +17,13 @@ install:
    - cd build
    - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "MinGW Makefiles" ..
    - make -j4
-   - #sudo make install
    - cd ..
    - cd .. 
    - SET "OpenCV_DIR=C:\opencv3.4.9\build\install"
+   
+before_script:
+  - cd build
+  - cmake ..
+
+script: 
+  - make OCVWarp.bin
