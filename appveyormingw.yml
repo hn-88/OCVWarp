@@ -17,6 +17,10 @@ install:
   - ps: Start-FileDownload https://github.com/opencv/opencv/archive/3.4.9.zip
   - 7z x 3.4.9.zip
   - cd opencv-3.4.9
+  - cd modules\videoio\src
+  - ps: Start-FileDownload https://github.com/hn-88/opencvpatch/raw/master/cap_dshow.cpp
+  
+  - cd ..\..\..
   - md build
   - cd build
   - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "MinGW Makefiles" ..
