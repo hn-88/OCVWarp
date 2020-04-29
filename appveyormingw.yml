@@ -40,7 +40,7 @@ artifacts:
   - path: build\OCVWarp.bin.exe
     name: OCVWarp.exe
 
-  - path: opencv-3.4.9\build\install\bin\*.dll
+  - path: opencv-3.4.9\build\install\x64\mingw\bin\*.dll
     name: OpenCV dlls
     
   - path: build\*.dll
