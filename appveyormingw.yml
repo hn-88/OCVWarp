@@ -1,0 +1,25 @@
+version: {build}
+
+environment:
+  - name: win32
+    platform: mingw
+    
+init:
+  - # set PATH=C:\Qt\5.5\%qt%\bin;C:\dev\dependencies\vlc-qt\bin;%PATH%
+  - # set ORIGPATH=%PATH%
+  - SET "PATH_MINGW32=c:\MinGW\bin;c:\MinGW\usr\bin" &&
+      SET "PATH_MINGW64=c:\msys64\mingw64\bin;c:\msys64\usr\bin" &&
+      COPY C:\MinGW\bin\mingw32-make.exe C:\MinGW\bin\make.exe &&
+      COPY C:\MinGW\bin\gcc.exe C:\MinGW\bin\cc.exe
+  
+install:
+  - git clone -b '3.4.9' --single-branch --depth 1 https://github.com/opencv/opencv
+  - cd opencv
+   - md build
+   - cd build
+   - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "MinGW Makefiles" ..
+   - make -j4
+   - #sudo make install
+   - cd ..
+   - cd .. 
+   - SET "OpenCV_DIR=C:\opencv3.4.9\build\install"
