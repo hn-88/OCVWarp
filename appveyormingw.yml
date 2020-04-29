@@ -1,8 +1,5 @@
 version: "2.11"
 
-environment:
-  - name: win32
-    platform: mingw
     
 init:
   - SET "PATH_MINGW32=c:\MinGW\bin;c:\MinGW\usr\bin" &&
