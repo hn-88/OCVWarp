@@ -1,6 +1,3 @@
-version: "2.11.2"
-
-    
 init:
   - SET "PATH_MINGW32=c:\MinGW\bin;c:\MinGW\usr\bin" &&
       SET "PATH_MINGW64=c:\msys64\mingw64\bin;c:\msys64\usr\bin" &&
