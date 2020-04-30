@@ -35,6 +35,8 @@ build_script:
   - copy C:\Qt\Tools\mingw530_32\bin\*.dll .
   - cmake -G "MinGW Makefiles" ..
   - mingw32-make OCVWarp.bin
+  - echo "ldd to find dependencies " 
+  - ldd OCVWarp.bin.exe
 
 artifacts:
   - path: build\OCVWarp.bin.exe
