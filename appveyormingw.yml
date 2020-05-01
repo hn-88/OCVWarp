@@ -20,6 +20,13 @@ install:
   - cd modules\videoio\src
   - ps: Start-FileDownload https://github.com/hn-88/opencvpatch/raw/master/cap_dshow.cpp
   
+  # find the locations of the runtime dlls
+  - set OLDPWD=$PWD
+  - cd c:\
+  - dir libgcc_s_dw2-1.dll /s 
+  - dir libstdc++-6.dll /s
+  - dir libwinpthread-1.dll /s
+  - cd OLDPWD
   - cd ..\..\..
   - md build
   - cd build
@@ -35,8 +42,7 @@ build_script:
   - copy C:\Qt\Tools\mingw530_32\bin\*.dll .
   - cmake -G "MinGW Makefiles" ..
   - mingw32-make OCVWarp.bin
-  - echo "ldd to find dependencies " 
-  - mingw-ldd OCVWarp.bin.exe
+  
 
 artifacts:
   - path: build\OCVWarp.bin.exe
