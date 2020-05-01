@@ -21,12 +21,13 @@ install:
   - ps: Start-FileDownload https://github.com/hn-88/opencvpatch/raw/master/cap_dshow.cpp
   
   # find the locations of the runtime dlls
-  - set OLDPWD=$PWD
-  - cd c:\
-  - dir libgcc_s_dw2-1.dll /s 
-  - dir libstdc++-6.dll /s
-  - dir libwinpthread-1.dll /s
-  - cd OLDPWD
+  #- set OLDPWD=$PWD
+  #- cd c:\
+  #- dir libgcc_s_dw2-1.dll /s 
+  #- dir libstdc++-6.dll /s
+  #- dir libwinpthread-1.dll /s
+  # these are found in 36 different locations each!
+  #- cd OLDPWD
   - cd ..\..\..
   - md build
   - cd build
@@ -40,6 +41,7 @@ install:
 build_script:
   - cd build
   - copy C:\Qt\Tools\mingw530_32\bin\*.dll .
+  - copy ..\CMakeListsWin.txt ..\CMakeLists.txt
   - cmake -G "MinGW Makefiles" ..
   - mingw32-make OCVWarp.bin
   
