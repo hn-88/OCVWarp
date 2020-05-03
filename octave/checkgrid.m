@@ -12,8 +12,8 @@ clear;
 pkg load image;
 
 N=256; % work with 256x256 images for speed
-N1 = 1920; %960;
-N2 = 1080; %540; % work with N1xN2 images to distinguish
+N1 = 600; %960;
+N2 = 600; %540; % work with N1xN2 images to distinguish
 
 % from EP_xyuv_1920.map
 warpfile=reshape([-1.77778	-1	0.160825	0.86737	0.530521
@@ -6061,8 +6061,8 @@ fflush(stdout);
 
 output = zeros(size(inputres));
 
-for i=1:500  %400
- for j=200:800
+for i=1:N2  %400
+ for j=1:N1
   if(ures(i,j)<=N1 && vres(i,j) <=N2)
     output(i,j,:)=inputres(vres(i,j),ures(i,j),:);
     %output(i,j,:)=inputres(xres(i,j),yres(i,j),:);
