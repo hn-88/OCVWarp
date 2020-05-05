@@ -89,6 +89,7 @@ std::string strpathtowarpfile;
 Mat meshu, meshv, meshx, meshy, meshi, I;
 Mat map2x, map2y;
 float maxx=0, minx=0;	
+float maxu=0, minu=0, maxv=0, minv=0;
 // meshx is in the range [-aspectratio, aspectratio]
 // we assume meshy is in the range [-1,1]
 // meshu and meshv in [0,1]
@@ -127,6 +128,18 @@ bool ReadMesh(std::string strpathtowarpfile)
 				else
 				if (x>maxx)
 					maxx = x;
+					
+				if (u<minu)
+					minu = u;
+				else
+				if (u>maxu)
+					maxu = u;
+					
+				if (v<minv)
+					minv = v;
+				else
+				if (v>maxv)
+					maxv = v;
                 
                 //~ mesh[cols*r+c].x = x;
                 //~ mesh[cols*r+c].y = y;
@@ -186,13 +199,27 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		Mat U, V, X, Y, IC1;
 		Mat indexu, indexv, indexx, indexy, temp;
 		ReadMesh(strpathtowarpfile);
-		resize(meshx, X, map_x.size(), INTER_LANCZOS4);
-		resize(meshy, Y, map_x.size(), INTER_LANCZOS4);
-		//debug - changed INTER_LINEAR to INTER_LANCZOS4
+		//resize(meshx, X, map_x.size(), INTER_LINEAR);
+		//resize(meshy, Y, map_x.size(), INTER_LINEAR);
+		//debug - changed INTER_LINEAR to INTER_LANCZOS4 and later INTER_CUBIC
 		// not much of a penalty, so we leave it in.
-		resize(meshu, U, map_x.size(), INTER_LANCZOS4);
-		resize(meshv, V, map_x.size(), INTER_LANCZOS4);
-		resize(meshi, IC1, map_x.size(), INTER_LANCZOS4);
+		
+		// discard the top/bottom line of U and V, since they cause
+		// the bottom of the image to be repeats of the same
+		//~ Mat meshub, meshvb;
+		//~ meshu(cv::Rect(0,0,meshu.cols,(meshu.rows-1))).copyTo(meshub);
+		//~ meshv(cv::Rect(0,0,meshv.cols,(meshv.rows-1))).copyTo(meshvb);
+		// this doesn't work
+		
+		// for per pixel equivalence with GL_warp, the following seems to be needed
+		int extrarows = U.rows / meshu.rows;
+		int extracols = 0;
+		//int extracols = U.cols / meshu.cols;
+		resize(meshu, U, Size(map_x.cols+extracols, map_x.rows+extrarows), INTER_CUBIC);
+		resize(meshv, V, Size(map_x.cols+extracols, map_x.rows+extrarows), INTER_CUBIC);
+		//resize(meshu, U, map_x.size(), INTER_CUBIC);
+		//resize(meshv, V, map_x.size(), INTER_CUBIC);
+		resize(meshi, IC1, map_x.size(), INTER_CUBIC);
 		
 		// I.convertTo(I, CV_32FC3); //this doesn't work 	
 		//convert to 3 channel Mat, for later multiplication
@@ -201,25 +228,35 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		merge(t, 3, I);
 		
 		// map the values which are [minx,maxx] to [0,map_x.cols-1]
-		temp = (map_x.cols-1)*(X - minx)/(maxx-minx);
-		temp.convertTo(indexx, CV_32S);		// this does the rounding to int
+		//~ temp = (map_x.cols-1)*(X - minx)/(maxx-minx);
+		//~ temp.convertTo(indexx, CV_32S);		// this does the rounding to int
 		
-		temp = (map_x.rows-1)*(Y+1)/2;	// assuming miny=-1, maxy=1
-		temp.convertTo(indexy, CV_32S);
+		//~ temp = (map_x.rows-1)*(Y+1)/2;	// assuming miny=-1, maxy=1
+		//~ temp.convertTo(indexy, CV_32S);
 		
 		temp = (map_x.cols-1)*U;	// assuming minu=0, maxu=1
 		temp.convertTo(indexu, CV_32S);		// this does the rounding to int
 		
 		temp = (map_x.rows-1)*V;	// assuming minv=0, maxv=1
+		//~ temp = (map_x.rows)*(V-minv)/(maxv-minv);
 		temp.convertTo(indexv, CV_32S);
+		
+		// there is no need to round off at this stage
+		//~ indexu = (map_x.cols)*U;		// actually should be map_x.cols-1
+		//~ indexv = (map_x.rows)*V;
 		
 		// debug
 		//~ imwrite("indexx.png", indexx);
 		//~ imwrite("indexy.png", indexy);
 		//~ imwrite("indexu.png", indexu);
 		//~ imwrite("indexv.png", indexv);
+		// debug trying i=20
 		
-		for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
+		int linestodiscard = U.rows / meshu.rows / 2;
+		//int colstodiscard = U.cols / meshu.cols / 2;
+		int colstodiscard = 0;
+		
+		for ( int i = 0; i < (map_x.rows); i++ ) // here, i is for y and j is for x
 			{
 				for ( int j = 0; j < map_x.cols; j++ )
 				{
@@ -230,24 +267,33 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 				    // and indexy.at<int>(i,j) = i
 				    // otherwise, a mesh effect due to discontinuities in indexx and indexy.
 				    // The if statement is just a sanity check.
-				    if ( (indexx.at<int>(i,j) >= 0 ) && (indexx.at<int>(i,j) < map_x.cols )
-						&& (indexu.at<int>(i,j) >= 0 ) && (indexu.at<int>(i,j) < map_x.cols )
-						&& (indexy.at<int>(i,j) >= 0 ) && (indexy.at<int>(i,j) < map_x.rows )
-						&& (indexv.at<int>(i,j) >= 0 ) && (indexv.at<int>(i,j) < map_x.rows ) )
-					{	
-						map_x.at<float>(i,j) = (float) indexu.at<int>(i,j);
-						map_y.at<float>(i,j) = (float) indexv.at<int>(i,j);
+				    //~ if ( (indexx.at<int>(i,j) >= 0 ) && (indexx.at<int>(i,j) < map_x.cols )
+						//~ && (indexu.at<int>(i,j) >= 0 ) && (indexu.at<int>(i,j) < map_x.cols )
+						//~ && (indexy.at<int>(i,j) >= 0 ) && (indexy.at<int>(i,j) < map_x.rows )
+						//~ && (indexv.at<int>(i,j) >= 0 ) && (indexv.at<int>(i,j) < map_x.rows ) )
+					//{	
+						map_x.at<float>(i,j) = (float) indexu.at<int>(i+linestodiscard,j+colstodiscard); //+100;
+						map_y.at<float>(i,j) = (float) indexv.at<int>(i+linestodiscard,j+colstodiscard); //+100;
 						//debug
-						//~ if ((indexx.at<int>(i,j) == 73) && (indexy.at<int>(i,j) == 75) )
+						//~ map_x.at<float>(i,j) = (float) j; //+100;
+						//~ map_y.at<float>(i,j) = (float) i; //+100);
+						
+						//debug
+						//if ((indexx.at<int>(i,j) == 73) && (indexy.at<int>(i,j) == 75) )
+						//if (( (i<29) && (j==640) ) || ( (i==1076) && (j==640) ) 
+						//||  ( (i==14) && (j==640) ) || ( (i==1066) && (j==640) ) )
 						//~ {
-							//~ std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
-							//~ std::cout << "x,y,u,v=";
+							//~ //std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
+							//~ //std::cout << "x,y,u,v=";
 							//~ std::cout << indexx.at<int>(i,j) << ", ";
 							//~ std::cout << indexy.at<int>(i,j) << ", ";
+							//~ std::cout << j << ", ";
+							//~ std::cout << i << ", ";
+							
 							//~ std::cout << indexu.at<int>(i,j) << ", ";
 							//~ std::cout << indexv.at<int>(i,j) << std::endl;
 						//~ }
-						//~ if (i==75)
+						//if (i==75)
 						 //~ if (j<80 && j>=0)
 						 //~ {
 							//~ std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
@@ -258,7 +304,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 							//~ std::cout << indexv.at<int>(i,j) << std::endl;
 						//~ }
 							
-				    } // end if
+				    //} // end if
 				    
 				    //~ else
 				    //~ {
@@ -270,8 +316,8 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 						//~ std::cout << indexu.at<int>(i,j) << ", ";
 						//~ std::cout << indexv.at<int>(i,j) << std::endl;
 					//~ }
-				}
-			}
+				} //end for j
+			} //end for i
 		return;
 	}
 	break;
@@ -974,8 +1020,8 @@ int main(int argc,char *argv[])
 		// the above code causes gridlines to appear in output
 		if (outputw<961)	//1K
 			texturew = 1024;
-			//~ // debug
-			//~ texturew = outputw;
+			// debug
+			//texturew = outputw;
 		else if (outputw<1921)	//2K
 			texturew = 2048;
 		else if (outputw<3841)	//4K
@@ -1026,6 +1072,9 @@ int main(int argc,char *argv[])
 	else
 	{
 		update_map(anglex, angley, map_x, map_y, transformtype);
+		// debug
+		//~ dst_x = map_x;
+		//~ dst_y = map_y;
 		convertMaps(map_x, map_y, dst_x, dst_y, CV_16SC2);	// supposed to make it faster to remap
 	}
     
