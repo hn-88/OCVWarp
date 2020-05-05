@@ -212,7 +212,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		// this doesn't work
 		
 		// for per pixel equivalence with GL_warp, the following seems to be needed
-		int extrarows = U.rows / meshu.rows;
+		int extrarows = 4* U.rows / meshu.rows ;
 		int extracols = 0;
 		//int extracols = U.cols / meshu.cols;
 		resize(meshu, U, Size(map_x.cols+extracols, map_x.rows+extrarows), INTER_CUBIC);
@@ -241,20 +241,9 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		//~ temp = (map_x.rows)*(V-minv)/(maxv-minv);
 		temp.convertTo(indexv, CV_32S);
 		
-		// there is no need to round off at this stage
-		//~ indexu = (map_x.cols)*U;		// actually should be map_x.cols-1
-		//~ indexv = (map_x.rows)*V;
-		
-		// debug
-		//~ imwrite("indexx.png", indexx);
-		//~ imwrite("indexy.png", indexy);
-		//~ imwrite("indexu.png", indexu);
-		//~ imwrite("indexv.png", indexv);
-		// debug trying i=20
-		
 		int linestodiscard = U.rows / meshu.rows / 2;
 		//int colstodiscard = U.cols / meshu.cols / 2;
-		int colstodiscard = 0;
+		//int colstodiscard = 0;
 		
 		for ( int i = 0; i < (map_x.rows); i++ ) // here, i is for y and j is for x
 			{
@@ -266,56 +255,10 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 				    // in the following, we assume indexx.at<int>(i,j) = j
 				    // and indexy.at<int>(i,j) = i
 				    // otherwise, a mesh effect due to discontinuities in indexx and indexy.
-				    // The if statement is just a sanity check.
-				    //~ if ( (indexx.at<int>(i,j) >= 0 ) && (indexx.at<int>(i,j) < map_x.cols )
-						//~ && (indexu.at<int>(i,j) >= 0 ) && (indexu.at<int>(i,j) < map_x.cols )
-						//~ && (indexy.at<int>(i,j) >= 0 ) && (indexy.at<int>(i,j) < map_x.rows )
-						//~ && (indexv.at<int>(i,j) >= 0 ) && (indexv.at<int>(i,j) < map_x.rows ) )
-					//{	
-						map_x.at<float>(i,j) = (float) indexu.at<int>(i+linestodiscard,j+colstodiscard); //+100;
-						map_y.at<float>(i,j) = (float) indexv.at<int>(i+linestodiscard,j+colstodiscard); //+100;
-						//debug
-						//~ map_x.at<float>(i,j) = (float) j; //+100;
-						//~ map_y.at<float>(i,j) = (float) i; //+100);
-						
-						//debug
-						//if ((indexx.at<int>(i,j) == 73) && (indexy.at<int>(i,j) == 75) )
-						//if (( (i<29) && (j==640) ) || ( (i==1076) && (j==640) ) 
-						//||  ( (i==14) && (j==640) ) || ( (i==1066) && (j==640) ) )
-						//~ {
-							//~ //std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
-							//~ //std::cout << "x,y,u,v=";
-							//~ std::cout << indexx.at<int>(i,j) << ", ";
-							//~ std::cout << indexy.at<int>(i,j) << ", ";
-							//~ std::cout << j << ", ";
-							//~ std::cout << i << ", ";
-							
-							//~ std::cout << indexu.at<int>(i,j) << ", ";
-							//~ std::cout << indexv.at<int>(i,j) << std::endl;
-						//~ }
-						//if (i==75)
-						 //~ if (j<80 && j>=0)
-						 //~ {
-							//~ std::cout << "not black(" <<i<< "," << j << ")" <<std::endl;
-							//~ std::cout << "x,y,u,v=";
-							//~ std::cout << indexx.at<int>(i,j) << ", ";
-							//~ std::cout << indexy.at<int>(i,j) << ", ";
-							//~ std::cout << indexu.at<int>(i,j) << ", ";
-							//~ std::cout << indexv.at<int>(i,j) << std::endl;
-						//~ }
-							
-				    //} // end if
-				    
-				    //~ else
-				    //~ {
-						//debug
-						//~ std::cout << "skipped(" <<i<< "," << j << ")" <<std::endl;
-						//~ std::cout << "x,y,u,v=";
-						//~ std::cout << indexx.at<int>(i,j) << ", ";
-						//~ std::cout << indexy.at<int>(i,j) << ", ";
-						//~ std::cout << indexu.at<int>(i,j) << ", ";
-						//~ std::cout << indexv.at<int>(i,j) << std::endl;
-					//~ }
+				    	
+					map_x.at<float>(i,j) = (float) indexu.at<int>(i+linestodiscard,j);
+					map_y.at<float>(i,j) = (float) indexv.at<int>(i+linestodiscard,j);
+					
 				} //end for j
 			} //end for i
 		return;
