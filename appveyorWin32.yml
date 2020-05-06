@@ -16,5 +16,5 @@ build:
   verbosity: minimal
  
 artifacts:
-- path: x86\Release\OCVWarp.exe
+- path: Win32\Release\OCVWarp.exe
 
