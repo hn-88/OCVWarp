@@ -7,7 +7,8 @@ configuration: Release
 
 install:
 - choco install opencv --version=3.4.3
-- cmd: appveyorsetdir.bat
+- cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x64\vc14
+- refreshenv
   
 build:
   project: OCVWarp.vcxproj
@@ -16,5 +17,6 @@ build:
  
 artifacts:
 - path: x64\Release\OCVWarp.exe
+- path: 
 
 
