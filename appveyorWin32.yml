@@ -25,6 +25,7 @@ install:
   
   
 build_script:
+  - copy CMakeListsWin32.txt CMakeLists.txt
   - cd build
   - cmake -G "Visual Studio 14 2015" -A Win32 ..
   - cmake --build . --target OCVWarp.bin
