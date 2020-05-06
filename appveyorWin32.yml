@@ -11,7 +11,7 @@ install:
 - refreshenv
   
 build:
-  project: OCVWarp.vcxproj
+  project: OCVWarpWin32.vcxproj
 
   verbosity: minimal
  
