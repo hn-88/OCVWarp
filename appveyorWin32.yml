@@ -15,7 +15,7 @@ install:
  - cd ..\..\..
  - md build
  - cd build
- - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF
+ - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "Visual Studio 12 2013" -A Win32 ..
  - make -j2
  - make install
  - cd ..
