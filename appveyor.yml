@@ -2,15 +2,19 @@ version: 1.0.{build}
 # base image
 image: Visual Studio 2015
 
-
+matrix:
+    - platform: x86
+       
+    - platform: x64
+       
 configuration: Release
 
-platform: x64
 
 install:
 - choco install opencv --version=3.4.3
-- cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x64\vc14
-- refreshenv
+
+- cmd: appveyorsetdir.bat
+
   
 build:
   project: OCVWarp.vcxproj
