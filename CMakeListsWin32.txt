@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules/")
 
 find_package(OpenCV REQUIRED)
 
-include_directories(C:/projects/ocvwarp/opencv-3.4.9/build/install/include)
+include_directories( C:/projects/ocvwarp/opencv-3.4.9/build/install/include  )
 
 aux_source_directory(. SRC_LIST)
 
@@ -14,5 +14,5 @@ foreach(F ${SRC_LIST})
     string(SUBSTRING ${F} 0 ${NAMELENGTH} FILENAME)
     string(REPLACE .cpp .bin FILENAME1 ${FILENAME})
     add_executable(${FILENAME1} ${F} tinyfiledialogs.c)
-    target_link_libraries(${FILENAME1} C:/projects/ocvwarp/opencv-3.4.9/build/install/x86/vc14/bin )
+    target_link_libraries(${FILENAME1} C:/projects/ocvwarp/opencv-3.4.9/build/install/x86/vc14/lib C:/projects/ocvwarp/opencv-3.4.9/build/install/x86/vc14/bin )
 endforeach(F)
