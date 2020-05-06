@@ -1,6 +1,6 @@
 version: 2.50.{build}
 # base image
-image: Visual Studio 2015
+image: Visual Studio 2013
 
 platform: Win32
 configuration: Release       
