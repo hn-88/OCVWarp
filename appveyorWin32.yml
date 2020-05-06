@@ -1,0 +1,20 @@
+version: 2.50.{build}
+# base image
+image: Visual Studio 2015
+
+platform: Win32
+configuration: Release       
+
+install:
+- choco install opencv --version=3.4.3
+- cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x86\vc14
+- refreshenv
+  
+build:
+  project: OCVWarp.vcxproj
+
+  verbosity: minimal
+ 
+artifacts:
+- path: x86\Release\OCVWarp.exe
+
