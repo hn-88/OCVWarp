@@ -10,8 +10,8 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{EB7B84BA-F34C-4EBA-B4B5-DE6F014CAF39}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>OCVWarpNorth</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <RootNamespace>OCVWarp</RootNamespace>
+    <WindowsTargetPlatformVersion>SDK_VER</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
