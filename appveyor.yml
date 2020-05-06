@@ -4,11 +4,10 @@ image: Visual Studio 2015
 
 matrix:
     - platform: x86
-       
+      configuration: Release       
     - platform: x64
+      configuration: Release
        
-configuration: Release
-
 
 install:
 - choco install opencv --version=3.4.3
