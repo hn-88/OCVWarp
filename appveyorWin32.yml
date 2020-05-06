@@ -24,11 +24,17 @@ install:
  - refreshenv
   
   
-build:
-  project: OCVWarpWin32.vcxproj
+build_script:
+  - cd build
+  - cmake -G "Visual Studio 14 2015" -A Win32 ..
+  - cmake --build . --target OCVWarp.bin
+  
 
-  verbosity: minimal
- 
 artifacts:
-- path: Win32\Release\OCVWarp.exe
+  - path: build\OCVWarp.bin.exe
+    name: OCVWarp.exe
 
+  - path: opencv-3.4.9\build\install\*\*\bin\*.dll
+    name: OpenCV dlls
+    
+ 
