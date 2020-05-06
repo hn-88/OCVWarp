@@ -2,8 +2,6 @@
 #include "windows.h"
 #endif
 
-
-
 /*
  * OCVWarp.cpp
  * 
@@ -825,6 +823,14 @@ int main(int argc,char *argv[])
 	VideoCapture inputVideo(escapedpath.c_str());              // Open input
 #endif
 
+#ifdef _WIN32
+	// Here, OpenCV on Windows needs escaped file paths. 
+	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	std::string escapedpath = escaped(std::string(OpenFileName));
+	VideoCapture inputVideo(escapedpath.c_str());              // Open input
+#endif
+
+
 #ifdef __MINGW32__
 	// Here, OpenCV on Windows needs escaped file paths. 
 	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
@@ -849,6 +855,10 @@ int main(int argc,char *argv[])
     std::string OpenFileNamestr = OpenFileName; 
 #endif
 #ifdef _WIN64
+	// Here, OpenCV on Windows needs escaped file paths. 
+	std::string OpenFileNamestr = escapedpath; 
+#endif 
+#ifdef _WIN32
 	// Here, OpenCV on Windows needs escaped file paths. 
 	std::string OpenFileNamestr = escapedpath; 
 #endif   
@@ -913,6 +923,10 @@ int main(int argc,char *argv[])
         outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
 #endif
 #ifdef _WIN64
+	// OpenCV on Windows can ask for a suitable fourcc. 
+	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
+#endif 
+#ifdef _WIN32
 	// OpenCV on Windows can ask for a suitable fourcc. 
 	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
 #endif  
