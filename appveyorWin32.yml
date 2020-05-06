@@ -1,6 +1,6 @@
 version: 2.50.{build}
 # base image
-image: Visual Studio 2013
+image: Visual Studio 2015
 
 platform: Win32
 configuration: Release       
@@ -15,7 +15,7 @@ install:
  - cd ..\..\..
  - md build
  - cd build
- - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "Visual Studio 12 2013" -A Win32 ..
+ - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "Visual Studio 14 2015" -A Win32 ..
  - cmake --build .  --config release
  - cmake --build .  --target install --config release
  - cd ..
