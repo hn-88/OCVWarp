@@ -212,11 +212,11 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		// this doesn't work
 		
 		// for per pixel equivalence with GL_warp, the following seems to be needed
-		int extrarows = 4* U.rows / meshu.rows ;
-		int extracols = 0;
-		//int extracols = U.cols / meshu.cols;
-		resize(meshu, U, Size(map_x.cols+extracols, map_x.rows+extrarows), INTER_CUBIC);
-		resize(meshv, V, Size(map_x.cols+extracols, map_x.rows+extrarows), INTER_CUBIC);
+		int extrarows = map_x.rows / meshu.rows ;
+		int extracols = map_x.cols / meshu.cols;
+		resize(meshu, U, Size(map_x.cols+extracols, (map_x.rows+extrarows)), INTER_CUBIC);
+		resize(meshv, V, Size(map_x.cols+extracols, (map_x.rows+extrarows)), INTER_CUBIC);
+		
 		//resize(meshu, U, map_x.size(), INTER_CUBIC);
 		//resize(meshv, V, map_x.size(), INTER_CUBIC);
 		resize(meshi, IC1, map_x.size(), INTER_CUBIC);
@@ -241,9 +241,8 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		//~ temp = (map_x.rows)*(V-minv)/(maxv-minv);
 		temp.convertTo(indexv, CV_32S);
 		
-		int linestodiscard = U.rows / meshu.rows / 2;
-		//int colstodiscard = U.cols / meshu.cols / 2;
-		//int colstodiscard = 0;
+		int linestodiscard = map_x.rows / meshu.rows / 2;
+		int colstodiscard = map_x.cols / meshu.cols / 2;
 		
 		for ( int i = 0; i < (map_x.rows); i++ ) // here, i is for y and j is for x
 			{
@@ -256,8 +255,8 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 				    // and indexy.at<int>(i,j) = i
 				    // otherwise, a mesh effect due to discontinuities in indexx and indexy.
 				    	
-					map_x.at<float>(i,j) = (float) indexu.at<int>(i+linestodiscard,j);
-					map_y.at<float>(i,j) = (float) indexv.at<int>(i+linestodiscard,j);
+					map_x.at<float>(i,j) = (float) indexu.at<int>(i+linestodiscard,j+colstodiscard);
+					map_y.at<float>(i,j) = (float) indexv.at<int>(i+linestodiscard,j+colstodiscard);
 					
 				} //end for j
 			} //end for i
