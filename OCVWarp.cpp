@@ -162,6 +162,8 @@ bool ReadMesh(std::string strpathtowarpfile)
 		std::cout << "Unable to read mesh data file (similar to EP_xyuv_1920.map), exiting!" << std::endl;
 		exit(0);
 	}
+	
+	return 1;
 }
 
 void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int transformtype )
@@ -271,11 +273,11 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		// int ycd = floor(map_x.rows/2) - 1 + angley;
 		int xcd = floor(map_x.cols/2) - 1 ;
 		int ycd = floor(map_x.rows/2) - 1 ;
-		int xd, yd;
+		 
 		float px_per_theta = map_x.cols * 2 / (2*CV_PI); 	// src width = map_x.cols * 2
 		float px_per_phi   = map_x.rows / CV_PI;			// src height = PI for equirect 360
 		float rad_per_px = CV_PI / map_x.rows;
-		float rd, theta, phiang, temp;
+		float theta;
 		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
 		float PxR, PyR, PzR;
 		float aperture = CV_PI;	// this is the only change between type 2 & 3
@@ -343,11 +345,11 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		// int ycd = floor(map_x.rows/2) - 1 + angley;
 		int xcd = floor(map_x.cols/2) - 1 ;
 		int ycd = floor(map_x.rows/2) - 1 ;
-		int xd, yd;
+		 
 		float px_per_theta = map_x.cols  / (2*CV_PI); 	//  width = map_x.cols 
 		float px_per_phi   = map_x.rows / CV_PI;		//  height = PI for equirect 360
 		float rad_per_px = CV_PI / map_x.rows;
-		float rd, theta, phiang, temp;
+		float theta;
 		float longi, lat, Px, Py, Pz, R;						// X and Y are map_x and map_y
 		float PxR, PyR, PzR;
 		float aperture = 2*CV_PI;
@@ -421,7 +423,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float halfrows = map_x.rows/2;
 		
 		
-		float longi, lat, Px, Py, Pz, R, theta;						// X and Y are map_x and map_y
+		float longi, lat, Px, Py, Pz, theta;						// X and Y are map_x and map_y
 		float xfish, yfish, rfish, phi, xequi, yequi;
 		float PxR, PyR, PzR;
 		float aperture = CV_PI;
@@ -612,7 +614,7 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 		float halfrows = map_x.rows/2;
 		
 		
-		float longi, lat, Px, Py, Pz, R, theta;						// X and Y are map_x and map_y
+		float longi, lat, Px, Py, Pz, theta;						// X and Y are map_x and map_y
 		float xfish, yfish, rfish, phi, xequi, yequi;
 		float PxR, PyR, PzR;
 		float aperture = 2*CV_PI;
@@ -786,7 +788,7 @@ int main(int argc,char *argv[])
 	std::cout << "Output codec type: " << outputfourccstr << std::endl;
 	
 	namedWindow("Display", WINDOW_NORMAL | WINDOW_KEEPRATIO); // 0 = WINDOW_NORMAL
-	resizeWindow("Display", round(outputw/outputh*600), 600); // this doesn't work?
+	resizeWindow("Display", round((float)(outputw)/(float)(outputh)*600), 600); // this doesn't work?
 	moveWindow("Display", 0, 0);
 	
 	char const * FilterPatterns[2] =  { "*.avi","*.*" };
