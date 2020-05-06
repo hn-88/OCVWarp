@@ -7,7 +7,7 @@ configuration: Release
 
 install:
 - choco install opencv --version=3.4.3
-- cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x86\vc14
+- cmd: setx -m OPENCV_DIR C:\tools\OpenCV\Build\x86\vc12
 - refreshenv
   
 build:
