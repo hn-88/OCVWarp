@@ -28,6 +28,7 @@ install:
 build_script:
   - copy CMakeListsWin32.txt CMakeLists.txt
   - copy C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\bin\*.dll . 
+  - copy C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\lib\*.lib . 
   - cd build
   - cmake -G "Visual Studio 14 2015" -A Win32 ..
   - cmake --build . --target OCVWarp.bin
