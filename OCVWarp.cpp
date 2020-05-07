@@ -912,25 +912,12 @@ int main(int argc,char *argv[])
                   (int) inputVideo.get(CAP_PROP_FRAME_HEIGHT));
     Size Sout = Size(outputw,outputh);            
     VideoWriter outputVideo;                                        // Open the output
-#ifdef __unix__
-    if (!(outputfourccstr[0] == 'N' &&
-    outputfourccstr[1] == 'U' &&
-    outputfourccstr[2] == 'L' &&
-    outputfourccstr[3] == 'L'))
-        outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
-        inputVideo.get(CAP_PROP_FPS), Sout, true);
-    else
-        outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
-#endif
-#ifdef _WIN64
+//#ifdef _WIN64
 	// OpenCV on Windows can ask for a suitable fourcc. 
-	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
-#endif 
-#ifdef _WIN32
-	// OpenCV on Windows can ask for a suitable fourcc. 
-	outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
-#endif  
-#ifdef __MINGW32__
+	//outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
+	// this doesn't work well with the ffmpeg dll - don't use this.
+//#endif 
+
     if (!(outputfourccstr[0] == 'N' &&
     outputfourccstr[1] == 'U' &&
     outputfourccstr[2] == 'L' &&
@@ -939,17 +926,7 @@ int main(int argc,char *argv[])
         inputVideo.get(CAP_PROP_FPS), Sout, true);
     else
         outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
-#endif
-#ifdef __MINGW64__
-    if (!(outputfourccstr[0] == 'N' &&
-    outputfourccstr[1] == 'U' &&
-    outputfourccstr[2] == 'L' &&
-    outputfourccstr[3] == 'L'))
-        outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
-        inputVideo.get(CAP_PROP_FPS), Sout, true);
-    else
-        outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
-#endif
+
 
     if (!outputVideo.isOpened())
     {
