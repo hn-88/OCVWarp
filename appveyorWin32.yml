@@ -21,7 +21,7 @@ install:
  - cd ..
  - cd .. 
  - cmd: setx -m OPENCV_DIR C:\projects\ocvwarp\opencv-3.4.9\build\install
- - cmd: setx path "%path%;C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\bin"
+ - cmd: setx path "%path%;C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\bin;C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\lib"
  - refreshenv
   
   
