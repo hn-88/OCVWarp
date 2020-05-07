@@ -815,34 +815,35 @@ int main(int argc,char *argv[])
 #ifdef __unix__
 	
 	VideoCapture inputVideo(OpenFileName);              // Open input
-#endif
-#ifdef _WIN64
+#else
+// #ifdef _WIN64 assuming Windows
+// otherwise, multiple definitions when building on Windows x64
 	// Here, OpenCV on Windows needs escaped file paths. 
 	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
 	std::string escapedpath = escaped(std::string(OpenFileName));
 	VideoCapture inputVideo(escapedpath.c_str());              // Open input
 #endif
 
-#ifdef _WIN32
-	// Here, OpenCV on Windows needs escaped file paths. 
-	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
-	std::string escapedpath = escaped(std::string(OpenFileName));
-	VideoCapture inputVideo(escapedpath.c_str());              // Open input
-#endif
+//~ #ifdef _WIN32
+	//~ // Here, OpenCV on Windows needs escaped file paths. 
+	//~ // https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	//~ std::string escapedpath = escaped(std::string(OpenFileName));
+	//~ VideoCapture inputVideo(escapedpath.c_str());              // Open input
+//~ #endif
 
 
-#ifdef __MINGW32__
-	// Here, OpenCV on Windows needs escaped file paths. 
-	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
-	std::string escapedpath = escaped(std::string(OpenFileName));
-	VideoCapture inputVideo(escapedpath.c_str());              // Open input
-#endif
-#ifdef __MINGW64__
-	// Here, OpenCV on Windows needs escaped file paths. 
-	// https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
-	std::string escapedpath = escaped(std::string(OpenFileName));
-	VideoCapture inputVideo(escapedpath.c_str());              // Open input
-#endif
+//~ #ifdef __MINGW32__
+	//~ // Here, OpenCV on Windows needs escaped file paths. 
+	//~ // https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	//~ std::string escapedpath = escaped(std::string(OpenFileName));
+	//~ VideoCapture inputVideo(escapedpath.c_str());              // Open input
+//~ #endif
+//~ #ifdef __MINGW64__
+	//~ // Here, OpenCV on Windows needs escaped file paths. 
+	//~ // https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
+	//~ std::string escapedpath = escaped(std::string(OpenFileName));
+	//~ VideoCapture inputVideo(escapedpath.c_str());              // Open input
+//~ #endif
 
 	
 	if (!inputVideo.isOpened())
@@ -853,23 +854,23 @@ int main(int argc,char *argv[])
      
 #ifdef __unix__
     std::string OpenFileNamestr = OpenFileName; 
-#endif
-#ifdef _WIN64
+#else
+//#ifdef _WIN64
 	// Here, OpenCV on Windows needs escaped file paths. 
 	std::string OpenFileNamestr = escapedpath; 
 #endif 
-#ifdef _WIN32
-	// Here, OpenCV on Windows needs escaped file paths. 
-	std::string OpenFileNamestr = escapedpath; 
-#endif   
-#ifdef __MINGW32__
-	// Here, OpenCV on Windows needs escaped file paths. 
-	std::string OpenFileNamestr = escapedpath; 
-#endif   
-#ifdef __MINGW64__
-	// Here, OpenCV on Windows needs escaped file paths. 
-	std::string OpenFileNamestr = escapedpath; 
-#endif   
+//~ #ifdef _WIN32
+	//~ // Here, OpenCV on Windows needs escaped file paths. 
+	//~ std::string OpenFileNamestr = escapedpath; 
+//~ #endif   
+//~ #ifdef __MINGW32__
+	//~ // Here, OpenCV on Windows needs escaped file paths. 
+	//~ std::string OpenFileNamestr = escapedpath; 
+//~ #endif   
+//~ #ifdef __MINGW64__
+	//~ // Here, OpenCV on Windows needs escaped file paths. 
+	//~ std::string OpenFileNamestr = escapedpath; 
+//~ #endif   
 
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
     std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
