@@ -15,7 +15,7 @@ install:
  - cd ..\..\..
  - md build
  - cd build
- - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -G "Visual Studio 14 2015" -A Win32 ..
+ - cmake -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF BUILD_opencv_world=ON -G "Visual Studio 14 2015" -A Win32 ..
  - cmake --build .  --config release
  - cmake --build .  --target install --config release
  - cd ..
@@ -26,7 +26,7 @@ install:
   
   
 build_script:
-  - copy CMakeListsWin32.txt CMakeLists.txt
+  # - copy CMakeListsWin32.txt CMakeLists.txt
   - copy C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\bin\*.dll . 
   - copy C:\projects\ocvwarp\opencv-3.4.9\build\install\x86\vc14\lib\*.lib . 
   - cd build
