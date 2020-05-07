@@ -31,7 +31,7 @@ build:
   verbosity: minimal
  
 artifacts:
-- path: Win32\Release\OCVWarp.exe
+- path: Release\OCVWarpWin32.exe
   
 - path: opencv-3.4.9\build\install\x86\vc14\bin\*.dll
   name: OpenCV dlls
