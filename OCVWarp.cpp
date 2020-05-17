@@ -69,7 +69,8 @@ y = 2 * latitude / PI
 #endif
 
 #include <string.h>
-
+#include <iostream>
+#include <fstream>
 #include <time.h>
 //#include <sys/stat.h>
 // this is for mkdir
