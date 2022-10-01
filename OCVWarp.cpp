@@ -725,6 +725,8 @@ int main(int argc,char *argv[])
 	bool showdisplay = 1;
     double anglex = 0;
     double angley = 0;
+	double anglexincr = 0;
+	double angleyincr = 0;
     
     int outputw = 1920;
     int outputh = 1080;
@@ -736,6 +738,8 @@ int main(int argc,char *argv[])
     strpathtowarpfile = "EP_xyuv_1920.map";
     char anglexstr[40];
     char angleystr[40];
+	char anglexincrstr[40];
+	char angleyincrstr[40];
     char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
     outputfourccstr[0] = 'N';
     outputfourccstr[1] = 'U';
@@ -764,7 +768,11 @@ int main(int argc,char *argv[])
 			// first three lines of ini file are comments
 			infile >> anglexstr;
 			infile >> tempstring;
+			infile >> anglexincrstr;
+			infile >> tempstring;
 			infile >> angleystr;
+			infile >> tempstring;
+			infile >> angleyincrstr;
 			infile >> tempstring;
 			infile >> outputw;
 			infile >> tempstring;
@@ -779,6 +787,8 @@ int main(int argc,char *argv[])
 			
 			anglex = atof(anglexstr);
 			angley = atof(angleystr);
+			anglexincr = atof(anglexincrstr);
+			angleyincr = atof(angleyincrstr);
 		  }
 
 	else std::cout << "Unable to open ini file, using defaults." << std::endl;
@@ -1123,6 +1133,8 @@ int main(int argc,char *argv[])
        //outputVideo.write(res); //save or
        outputVideo << dst;
        
+	   anglex = anglex + anglexincr;
+	   angley = angley + angleyincr;
        
        switch (key)
 				{
