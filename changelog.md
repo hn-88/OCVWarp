@@ -1,3 +1,14 @@
+ 
+OCVWarp v2.50
+-----------------
+Bugfixes. Output more closely matches GL_warp for transforms 4 and 5. The Windows builds are via Appveyor.
+
+
+ OCVWarp v2.11
+-----------------
+Replacing the auto-generated AppImage which was inadvertently deleted in the previous release. Travis still doesn't include the tag of the release in the AppImage name, only the commit hash.
+
+
  OCVWarp v2.10
 -----------------
 This release fixes a couple of bugs - the seam at longitude=0 and angley not working in transformtype=0.
