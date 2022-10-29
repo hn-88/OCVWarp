@@ -1,0 +1,7 @@
+*.txt linguist-detectable=false
+*.map linguist-detectable=false
+*.ini linguist-detectable=false
+*.yml linguist-detectable=false
+*.vcproj linguist-detectable=false
+*.props linguist-detectable=false
+*.desktop linguist-detectable=false
