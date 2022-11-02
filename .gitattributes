@@ -5,3 +5,4 @@
 *.vcproj linguist-detectable=false
 *.props linguist-detectable=false
 *.desktop linguist-detectable=false
+*.m linguist-detectable=false
