@@ -82,7 +82,7 @@ deploy:
   token: $mytokenname
   file_glob: true
   file: O*.AppImage
-  #draft: true
-  on:
-    tags: true
+  draft: true
+  #on:
+  #  tags: true
   edge: true
