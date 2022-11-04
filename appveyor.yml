@@ -1,4 +1,4 @@
-version: 2.50.{build}
+version: 2.60.{build}
 # base image
 image: Visual Studio 2015
 
