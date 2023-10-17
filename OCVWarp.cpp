@@ -1132,9 +1132,12 @@ int main(int argc,char *argv[])
         
        //outputVideo.write(res); //save or
        outputVideo << dst;
-       
+       if (anglexincr!=0 || angleyincr!=0) {
 	   anglex = anglex + anglexincr;
 	   angley = angley + angleyincr;
+	   interactivemode = 1;
+       }
+	
        
        switch (key)
 				{
