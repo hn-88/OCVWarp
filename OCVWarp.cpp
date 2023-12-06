@@ -1,5 +1,6 @@
 #ifdef _WIN64
 #include "windows.h"
+#include <fstream>
 #endif
 
 /*
