@@ -669,7 +669,7 @@ int main(int argc,char *argv[])
     
     // adding code to open ini file instead of hardcoding
 	// from https://github.com/hn-88/OCVvid2fulldome/
-	std::string tempstring, inistr;
+	std::string inistr;
 	char const * FilterPatternsini[2] =  { "*.ini","*.*" };
 	char const * OpenFileNameini;
 		
