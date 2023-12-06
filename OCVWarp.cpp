@@ -516,92 +516,6 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 	//else
 	//if (transformtype == 0) // the default // Equirectangular 360 to 360 degree fisheye
 	{
-		// using code adapted from http://www.fmwconcepts.com/imagemagick/pano2fisheye/index.php
-			// set destination (output) centers
-			
-			//~ // changing this to code based on Paul's diagram in version 2.1
-			//      so that anglex and angley both work
-			//////////////////////////////////////////////////////////////
-			
-			//~ int xcd = floor(map_x.cols/2) - 1;
-			//~ int ycd = floor(map_x.rows/2) - 1;
-			//~ int xd, yd;
-			//~ //define destination (output) coordinates center relative xd,yd
-			//~ // "xd= x - xcd;"
-			//~ // "yd= y - ycd;"
-
-			//~ // compute input pixels per angle in radians
-			//~ // theta ranges from -180 to 180 = 360 = 2*pi
-			//~ // phi ranges from 0 to 90 = pi/2
-			//~ float px_per_theta = map_x.cols / (2*CV_PI);
-			//~ float px_per_phi   = map_x.rows / (CV_PI/2);
-			//~ // compute destination radius and theta 
-			//~ float rd; // = sqrt(x^2+y^2);
-			
-			//~ // set theta so original is north rather than east
-			//~ float theta; //= atan2(y,x);
-			
-			//~ // convert radius to phiang according to fisheye mode
-			//~ //if projection is linear then
-			//~ //	 destination output diameter (dimensions) corresponds to 180 deg = pi (fov); angle is proportional to radius
-			//~ float rad_per_px = CV_PI / map_x.rows;
-			//~ float phiang;     // = rad_per_px * rd;
-			
-
-			//~ // convert theta to source (input) xs and phi to source ys
-			//~ // -rotate 90 aligns theta=0 with north and is faster than including in theta computation
-			//~ // y corresponds to h-phi, so that bottom of the input is center of output
-			//~ // xs = width + theta * px_per_theta;
-			//~ // ys = height - phiang * px_per_phi;
-			
-			
-			//~ for ( int i = 0; i < map_x.rows; i++ ) // here, i is for y and j is for x
-			//~ {
-				//~ for ( int j = 0; j < map_x.cols; j++ )
-				//~ {
-					//~ xd = j - xcd;
-					//~ yd = i - ycd;
-					//~ if (xd == 0 && yd == 0)
-					//~ {
-						//~ theta = 0 + anglex*CV_PI/180;
-						//~ rd = 0;
-					//~ }
-					//~ else
-					//~ {
-						//~ //theta = atan2(float(yd),float(xd)); // this sets orig to east
-						//~ // so America, at left of globe, becomes centred
-						//~ theta = atan2(xd,yd) + anglex*CV_PI/180;; // this sets orig to north
-						//~ // makes the fisheye left/right flipped if atan2(-xd,yd)
-						//~ // so that Africa is centred when anglex = 0.
-						//~ rd = sqrt(float(xd*xd + yd*yd));
-					//~ }
-					//~ // move theta to [-pi, pi]
-					//~ theta = fmod(theta+CV_PI, 2*CV_PI);
-					//~ if (theta < 0)
-						//~ theta = theta + CV_PI;
-					//~ theta = theta - CV_PI;	
-					
-					//~ //phiang = rad_per_px * rd + angley*CV_PI/180; // this zooms in/out, not rotate cam
-					//~ phiang = rad_per_px * rd;
-					
-					//~ map_x.at<float>(i, j) = (float)round((map_x.cols/2) + theta * px_per_theta);
-					
-					//~ //map_y.at<float>(i, j) = (float)round((map_x.rows) - phiang * px_per_phi);
-					//~ // this above makes the south pole the centre.
-					
-					//~ map_y.at<float>(i, j) = phiang * px_per_phi;
-					//~ // this above makes the north pole the centre of the fisheye
-					//~ // map_y.at<float>(i, j) = phiang * px_per_phi - angley; //this just zooms out
-					
-					
-					 
-				   //~ // the following test mapping just makes the src upside down in dst
-				   //~ // map_x.at<float>(i, j) = (float)j;
-				   //~ // map_y.at<float>(i, j) = (float)( i); 
-				   
-				 //~ } // for j
-				   
-			//~ } // for i
 			
 		//////////////////////////////////////
 		// the following code is similar to transformtype=1 code
@@ -671,9 +585,10 @@ void update_map( double anglex, double angley, Mat &map_x, Mat &map_y, int trans
 					yequi = 2*lat / CV_PI;
 					// this maps to [-1, 0] for south pole
 					
-					//if (rfish <= 1.0)		// outside that circle, let it be black
-					// removed the black circle to help transformtype=5
-					// avoid bottom pixels black
+					if (rfish <= 1.1)		// outside that circle, let it be black
+					// restored the black circle 
+					// to help transformtype=5
+					// avoid bottom pixels black, made it 1.1 instead of 1.0
 					{
 						map_x.at<float>(i, j) =  abs(xequi * map_x.cols / 2 + xcd);
 						//map_y.at<float>(i, j) =  yequi * map_x.rows / 2 + ycd;
@@ -834,26 +749,7 @@ int main(int argc,char *argv[])
 	VideoCapture inputVideo(escapedpath.c_str());              // Open input
 #endif
 
-//~ #ifdef _WIN32
-	//~ // Here, OpenCV on Windows needs escaped file paths. 
-	//~ // https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
-	//~ std::string escapedpath = escaped(std::string(OpenFileName));
-	//~ VideoCapture inputVideo(escapedpath.c_str());              // Open input
-//~ #endif
 
-
-//~ #ifdef __MINGW32__
-	//~ // Here, OpenCV on Windows needs escaped file paths. 
-	//~ // https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
-	//~ std::string escapedpath = escaped(std::string(OpenFileName));
-	//~ VideoCapture inputVideo(escapedpath.c_str());              // Open input
-//~ #endif
-//~ #ifdef __MINGW64__
-	//~ // Here, OpenCV on Windows needs escaped file paths. 
-	//~ // https://stackoverflow.com/questions/48260879/how-to-replace-with-in-c-string
-	//~ std::string escapedpath = escaped(std::string(OpenFileName));
-	//~ VideoCapture inputVideo(escapedpath.c_str());              // Open input
-//~ #endif
 
 	
 	if (!inputVideo.isOpened())
@@ -869,18 +765,7 @@ int main(int argc,char *argv[])
 	// Here, OpenCV on Windows needs escaped file paths. 
 	std::string OpenFileNamestr = escapedpath; 
 #endif 
-//~ #ifdef _WIN32
-	//~ // Here, OpenCV on Windows needs escaped file paths. 
-	//~ std::string OpenFileNamestr = escapedpath; 
-//~ #endif   
-//~ #ifdef __MINGW32__
-	//~ // Here, OpenCV on Windows needs escaped file paths. 
-	//~ std::string OpenFileNamestr = escapedpath; 
-//~ #endif   
-//~ #ifdef __MINGW64__
-	//~ // Here, OpenCV on Windows needs escaped file paths. 
-	//~ std::string OpenFileNamestr = escapedpath; 
-//~ #endif   
+  
 
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
     std::string NAME = OpenFileNamestr.substr(0, pAt) + "F" + ".avi";   // Form the new name with container
