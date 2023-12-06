@@ -42,7 +42,7 @@ jobs:
         echo "create appimage"
         mkdir -p appdir/usr/bin ; strip OCVWarp.bin ; cp OCVWarp.bin ./appdir/usr/bin/OCVWarp.bin
         mkdir -p appdir/usr/share/applications ; cp ../appdir/OCVWarp.desktop ./appdir/usr/share/applications/
-        mkdir -p appdir/usr/share/icons/hicolor/256x256/apps ; cp ../appdir/pan2fulldome.png ./appdir/usr/share/icons/hicolor/256x256/apps/
+        mkdir -p appdir/usr/share/icons/hicolor/256x256/apps ; cp ../appdir/OCVWarp.png ./appdir/usr/share/icons/hicolor/256x256/apps/
         wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
         chmod a+x linuxdeployqt-continuous-x86_64.AppImage
         unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
