@@ -667,7 +667,26 @@ int main(int argc,char *argv[])
     // askOutputType=1 works only on Windows (vfw?) currently
     const bool askOutputType = 0;
     
-    std::ifstream infile("OCVWarp.ini");
+    // adding code to open ini file instead of hardcoding
+	// from https://github.com/hn-88/OCVvid2fulldome/
+	std::string tempstring, inistr;
+	char const * FilterPatternsini[2] =  { "*.ini","*.*" };
+	char const * OpenFileNameini;
+		
+	OpenFileNameini = tinyfd_openFileDialog(
+				"Open an ini file if it exists",
+				"",
+				2,
+				FilterPatternsini,
+				NULL,
+				0);
+
+	if (! OpenFileNameini) {
+		// can't proceed
+		return 1;
+	}
+     inistr = OpenFileNameini;
+     std::ifstream infile(inistr);
     
     int transformtype = 0;
     // 0 = Equirectangular to 360 degree fisheye
