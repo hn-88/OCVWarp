@@ -690,10 +690,31 @@ int main(int argc,char *argv[])
 		tinyfd_messageBox("Please Note", 
 			"ini file not supplied or unreadable. So, manual inputs ...", 
 			"ok", "info", 1);
+		/* Data needed:
+		 anglexstr;
+		anglexincrstr;
+		angleystr;
+		angleyincrstr;
+		outputw;
+		outputh;
+		transformtype;
+		outputfourccstr;
+		strpathtowarpfile;
+		*/
 		lTmp = tinyfd_inputBox(
-		"Please Input", "Output video width (=height)", "1024");
+		"Please Input", "Output video width", "3840");
 		if (!lTmp) return 1 ;	
 		outputw = atoi(lTmp);
+		lTmp = tinyfd_inputBox(
+		"Please Input", "Output video height", "2160");
+		if (!lTmp) return 1 ;	
+		outputh = atoi(lTmp);
+		lTmp = tinyfd_inputBox(
+		"Please Input", "Transform type\n0  for EquirectTo360Fisheye\n1  for EquirectTo180Fisheye\n2  for 360FisheyeToEquirect\n3  for 180FisheyeToEquirect\n4  for 180Fisheye (fulldome) to warped file\n5  for Equirect to warped file", "4");
+		if (!lTmp) return 1 ;	
+		transformtype = atoi(lTmp);
+
+
 	
 		// Init cvui and tell it to create a OpenCV window, i.e. cv::namedWindow(WINDOW_NAME).
 		cvui::init(WINDOW_NAME);
