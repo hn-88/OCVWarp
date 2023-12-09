@@ -1,4 +1,12 @@
- 
+OCVWarp v2.70
+-----------------
+Bugfixes to make anglex and angley increments actually work.
+
+OCVWarp v2.60
+-----------------
+Added code for anglex and angley increments per frame, specified in the ini file.
+
+
 OCVWarp v2.50
 -----------------
 Bugfixes. Output more closely matches GL_warp for transforms 4 and 5. The Windows builds are via Appveyor.
