@@ -649,6 +649,11 @@ int main(int argc,char *argv[])
     
     int outputw = 1920;
     int outputh = 1080;
+
+	int transformtype = 0;
+ 	// 0 = Equirectangular to 360 degree fisheye
+    	// 1 = Equirectangular to 180 degree fisheye
+    
     
     int texturew = 2048;
     
@@ -690,10 +695,7 @@ int main(int argc,char *argv[])
 		tinyfd_messageBox("Please Note", 
 			"ini file not supplied or unreadable. So, manual inputs ...", 
 			"ok", "info", 1);
-		int transformtype = 0;
-    		// 0 = Equirectangular to 360 degree fisheye
-    		// 1 = Equirectangular to 180 degree fisheye
-    
+		
 		/* Data needed:
 		 anglexstr;
 		anglexincrstr;
