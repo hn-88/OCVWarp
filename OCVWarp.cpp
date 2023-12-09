@@ -690,6 +690,10 @@ int main(int argc,char *argv[])
 		tinyfd_messageBox("Please Note", 
 			"ini file not supplied or unreadable. So, manual inputs ...", 
 			"ok", "info", 1);
+		int transformtype = 0;
+    		// 0 = Equirectangular to 360 degree fisheye
+    		// 1 = Equirectangular to 180 degree fisheye
+    
 		/* Data needed:
 		 anglexstr;
 		anglexincrstr;
@@ -730,9 +734,6 @@ int main(int argc,char *argv[])
      inistr = OpenFileNameini;
      std::ifstream infile(inistr);
     
-    int transformtype = 0;
-    // 0 = Equirectangular to 360 degree fisheye
-    // 1 = Equirectangular to 180 degree fisheye
     
     int ind = 1;
     // inputs from ini file
