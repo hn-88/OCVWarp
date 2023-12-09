@@ -686,6 +686,10 @@ int main(int argc,char *argv[])
 
 	if (! OpenFileNameini) {
 		// manual mode
+		tinyfd_messageBox("Please Note", 
+			"ini file not supplied or unreadable. So, manual inputs ...", 
+			"ok", "info", 1);
+	
 		// Init cvui and tell it to create a OpenCV window, i.e. cv::namedWindow(WINDOW_NAME).
 		cvui::init(WINDOW_NAME);
 		while (true) {
