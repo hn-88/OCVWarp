@@ -686,9 +686,14 @@ int main(int argc,char *argv[])
 
 	if (! OpenFileNameini) {
 		// manual mode
+		char const * lTmp;
 		tinyfd_messageBox("Please Note", 
 			"ini file not supplied or unreadable. So, manual inputs ...", 
 			"ok", "info", 1);
+		lTmp = tinyfd_inputBox(
+		"Please Input", "Output video width (=height)", "1024");
+		if (!lTmp) return 1 ;	
+		outputw = atoi(lTmp);
 	
 		// Init cvui and tell it to create a OpenCV window, i.e. cv::namedWindow(WINDOW_NAME).
 		cvui::init(WINDOW_NAME);
