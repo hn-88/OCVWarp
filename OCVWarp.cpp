@@ -77,6 +77,9 @@ y = 2 * latitude / PI
 
 #include <opencv2/opencv.hpp>
 #include "tinyfiledialogs.h"
+#define CVUI_IMPLEMENTATION
+#include "cvui.h"
+#define WINDOW_NAME "OCVWARP - HIT <esc> TO CLOSE"
 
 #define CV_PI   3.1415926535897932384626433832795
 
@@ -682,8 +685,16 @@ int main(int argc,char *argv[])
 				0);
 
 	if (! OpenFileNameini) {
-		// can't proceed
-		return 1;
+		// manual mode
+		// Init cvui and tell it to create a OpenCV window, i.e. cv::namedWindow(WINDOW_NAME).
+		cvui::init(WINDOW_NAME);
+		while (true) {
+		// Fill the frame with a nice color
+		frame = cv::Scalar(49, 52, 49);
+
+		// Render UI components to the frame
+		cvui::text(frame, 350, 10, "Preview");
+		}
 	}
      inistr = OpenFileNameini;
      std::ifstream infile(inistr);
