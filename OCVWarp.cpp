@@ -692,6 +692,7 @@ int main(int argc,char *argv[])
 	
 		// Init cvui and tell it to create a OpenCV window, i.e. cv::namedWindow(WINDOW_NAME).
 		cvui::init(WINDOW_NAME);
+		cv::Mat frame = cv::Mat(cv::Size(400, 200), cv::CV_8UC3);
 		while (true) {
 		// Fill the frame with a nice color
 		frame = cv::Scalar(49, 52, 49);
