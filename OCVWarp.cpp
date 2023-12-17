@@ -1,6 +1,5 @@
 #ifdef _WIN64
 #include "windows.h"
-#include <fstream>
 #endif
 
 /*
@@ -70,7 +69,7 @@ y = 2 * latitude / PI
 #endif
 
 #include <string.h>
-
+#include <fstream>
 #include <time.h>
 //#include <sys/stat.h>
 // this is for mkdir
