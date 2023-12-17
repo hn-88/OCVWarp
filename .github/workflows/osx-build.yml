@@ -23,6 +23,7 @@ jobs:
       # We're using the distro's default opencv build, since that should be sufficient.
       run: |
         brew update
+        brew upgrade
         brew install opencv
 
     - name: Configure CMake
