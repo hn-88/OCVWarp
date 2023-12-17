@@ -29,7 +29,7 @@ jobs:
         rm /usr/local/bin/pydoc3
         rm /usr/local/bin/python3
         rm /usr/local/bin/python3-config
-        rm /usr/local/lib/node_modules/npm
+        rm -Rf /usr/local/lib/node_modules/npm
         brew update
         brew upgrade
         brew install opencv
