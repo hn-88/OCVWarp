@@ -765,18 +765,23 @@ int main(int argc,char *argv[])
 			"question" , 
 			1 ) ;	
 		}
-		if (isInputEquirect == 1 ) 
+		
+		if (isInputEquirect == 1 ) {
 			if (isOutputWarped == 1) transformtype = 5;
 			else  {
 			if ( isOutputFisheye180 == 1) transformtype = 1;
 			else transformtype = 0;
-		}
-
-		
+			}
+		} else if (isInputFisheye180 == 1) {
+			if (isOutputWarped == 1) transformtype = 4;
+			else  transformtype = 3;
+		} else transformtype = 2;
+		/*	
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Transform type\n0  for EquirectTo360Fisheye\n1  for EquirectTo180Fisheye\n2  for 360FisheyeToEquirect\n3  for 180FisheyeToEquirect\n4  for 180Fisheye (fulldome) to warped file\n5  for Equirect to warped file", "4");
 		if (!lTmp) return 1 ;	
 		transformtype = atoi(lTmp);
+		*/
 		
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Output FOURCC", "avc1");
