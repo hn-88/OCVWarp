@@ -727,14 +727,14 @@ int main(int argc,char *argv[])
 		int isInputFishEye180 = 0;
 		int isOutputFishEye180 = 0;
 		int isOutputWarped = 0;
-		int isInputEquiRect = tinyfd_messageBox(
+		int isInputEquirect = tinyfd_messageBox(
 		"Transform type - Input" , /* NULL or "" */
 		"Is the input Equirectangular VR360?"  , /* NULL or "" may contain \n \t */
 		"yesno" , /* "ok" "okcancel" "yesno" "yesnocancel" */
 		"question" , /* "info" "warning" "error" "question" */
 		1 ) ;	/* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
 
-		if (isInputEquiRect != 1) {
+		if (isInputEquirect != 1) {
 			int isInputFishEye180 = tinyfd_messageBox(
 			"Transform type - Input" , 
 			"Is the input 180 fisheye (fulldome)?"  , 
@@ -751,7 +751,7 @@ int main(int argc,char *argv[])
 		1 ) ;
 
 		if (isOutputFisheye == 1) {
-			isOutputFishEye180 = tinyfd_messageBox(
+			isOutputFisheye180 = tinyfd_messageBox(
 			"Transform type - Output" , 
 			"Is the desired output 180 fisheye (fulldome)?"  , 
 			"yesno" , 
@@ -764,6 +764,12 @@ int main(int argc,char *argv[])
 			"yesno" , 
 			"question" , 
 			1 ) ;	
+		}
+		if (isInputEquirect == 1 ) 
+			if (isOutputWarped == 1) transformtype = 5;
+			else  {
+			if ( isOutputFisheye180 == 1) transformtype = 1;
+			else transformtype = 0;
 		}
 
 		
