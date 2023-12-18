@@ -726,6 +726,7 @@ int main(int argc,char *argv[])
 		
 		int isInputFisheye180 = 0;
 		int isOutputFisheye = 0;
+		int isOutputFisheye180 = 0;
 		int isOutputWarped = 0;
 		
 		int isInputEquirect = tinyfd_messageBox(
