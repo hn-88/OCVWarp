@@ -710,14 +710,68 @@ int main(int argc,char *argv[])
 		"Please Input", "Output video width", "3840");
 		if (!lTmp) return 1 ;	
 		outputw = atoi(lTmp);
+		
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Output video height", "2160");
 		if (!lTmp) return 1 ;	
 		outputh = atoi(lTmp);
+
+		// there are currently 3 input types and 4 output types
+		// as seen in build/transformtype.txt
+
+		// Input == Equirect --> Output can be 360fisheye=0, 180fisheye=1, warped=5
+		// Input != Equirect --> Input can be 360fisheye or 180fisheye
+		// Input == 360fisheye --> Output can be Equirect=2 only
+		// Input == 180fisheye --> Output can be Equirect=3, warped=4
+		
+		int isInputFishEye180 = 0;
+		int isOutputFishEye180 = 0;
+		int isOutputWarped = 0;
+		int isInputEquiRect = tinyfd_messageBox(
+		"Transform type - Input" , /* NULL or "" */
+		"Is the input Equirectangular VR360?"  , /* NULL or "" may contain \n \t */
+		"yesno" , /* "ok" "okcancel" "yesno" "yesnocancel" */
+		"question" , /* "info" "warning" "error" "question" */
+		1 ) ;	/* 0 for cancel/no , 1 for ok/yes , 2 for no in yesnocancel */
+
+		if (isInputEquiRect != 1) {
+			int isInputFishEye180 = tinyfd_messageBox(
+			"Transform type - Input" , 
+			"Is the input 180 fisheye (fulldome)?"  , 
+			"yesno" , 
+			"question" , 
+			1 ) ;	
+		}
+
+		int isOutputFishEye = tinyfd_messageBox(
+		"Transform type - Output" , 
+		"Is the desired output fisheye?"  , 
+		"yesno" , 
+		"question" , 
+		1 ) ;
+
+		if (isOutputFisheye == 1) {
+			isOutputFishEye180 = tinyfd_messageBox(
+			"Transform type - Output" , 
+			"Is the desired output 180 fisheye (fulldome)?"  , 
+			"yesno" , 
+			"question" , 
+			1 ) ;	
+		} else {
+			isOutputWarped = tinyfd_messageBox(
+			"Transform type - Output" , 
+			"Is the desired output a warped file (mirrordome)?"  , 
+			"yesno" , 
+			"question" , 
+			1 ) ;	
+		}
+
+		
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Transform type\n0  for EquirectTo360Fisheye\n1  for EquirectTo180Fisheye\n2  for 360FisheyeToEquirect\n3  for 180FisheyeToEquirect\n4  for 180Fisheye (fulldome) to warped file\n5  for Equirect to warped file", "4");
 		if (!lTmp) return 1 ;	
 		transformtype = atoi(lTmp);
+		
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Output FOURCC", "avc1");
 		if (!lTmp) return 1 ;	
