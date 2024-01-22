@@ -633,6 +633,17 @@ std::string escaped(const std::string& input)
     return output;
 }
 
+inline void writeIni(path) 
+{
+	try {
+		std::ofstream inifileout;
+		inifileout << "#ini_file_for_OCVWarp--Comments_start_with_#" << std::endl;
+		inifileout << "#Enter_each_parameter_in_the_line_below_the_comment. " << std::endl;
+	} catch (const exception& e) {
+		std::cerr << "An error occured writing to ini file."<< std::endl << e.what() <<  std::endl; 		
+	}
+}
+
 
 int main(int argc,char *argv[])
 {
@@ -815,7 +826,19 @@ int main(int argc,char *argv[])
 		angley = atof(angleystr);
 		anglexincr = atof(anglexincrstr);
 		angleyincr = atof(angleyincrstr);
-		
+	// here, we give an option for the user to save the ini file
+        // if cancelled, the program just continues.
+		char const * lIniFilterPatterns[1] = { "*.ini" };
+    		char const * IniSaveFileName = tinyfd_saveFileDialog(
+		"Choose the name and path of the ini file if you want to save the settings, like OCVWarp-4096ToW.ini",
+		"OCVWarp-.ini",
+		1,
+		lIniFilterPatterns,
+		NULL);
+		if (IniSaveFileName)
+		{
+			writeIni(IniSaveFileName);
+		}
 
 
 	/* ***********
