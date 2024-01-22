@@ -639,8 +639,8 @@ inline void writeIni(std::string iniwpath)
 		std::ofstream inifileout(iniwpath);
 		inifileout << "#ini_file_for_OCVWarp--Comments_start_with_#" << std::endl;
 		inifileout << "#Enter_each_parameter_in_the_line_below_the_comment. " << std::endl;
-	} catch (const exception& e) {
-		std::cerr << "An error occured writing to ini file."<< std::endl << e.what() <<  std::endl; 		
+	} catch () {
+		std::cerr << "An error occured writing to ini file."<< std::endl ; 		
 	}
 }
 
