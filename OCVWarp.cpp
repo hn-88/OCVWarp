@@ -639,6 +639,25 @@ inline void writeIni(std::string iniwpath)
 		std::ofstream inifileout(iniwpath);
 		inifileout << "#ini_file_for_OCVWarp--Comments_start_with_#" << std::endl;
 		inifileout << "#Enter_each_parameter_in_the_line_below_the_comment. " << std::endl;
+		inifileout << "#AngleXinDegrees_float" << std::endl;
+		inifileout << anglexstr << std::endl;
+		inifileout << "#AngleXIncrementperFrameinDegrees_float" << std::endl;
+		inifileout << anglexincrstr << std::endl;
+		inifileout << "#AngleYinDegrees_float" << std::endl;
+		inifileout << angleystr << std::endl;
+		inifileout << "#AngleYIncrementperFrameinDegrees_float" << std::endl;
+		inifileout << angleyincrstr << std::endl;
+		inifileout << "#Output_width_pixels" << std::endl;
+		inifileout << outputw << std::endl;
+		inifileout << "#Output_height_pixels" << std::endl;
+		inifileout << outputh << std::endl;
+		inifileout << "#0=360Fisheye_1=180Fisheye_etc--see_transformtype.txt" << std::endl;
+		inifileout << transformtype << std::endl;
+		inifileout << "#Output_video_codec_fourcc__use_NULL_for_same_as_input--see_fourcc.txt" << std::endl;
+		inifileout << outputfourccstr << std::endl;		
+		inifileout << "#Path_to_Map_file_used_for_transformtype_4_&_5" << std::endl;
+		inifileout << "EP_xyuv_1920.map" << std::endl;
+		
 	} catch (int) {
 		std::cerr << "An error occured writing to ini file."<< std::endl ; 		
 	}
