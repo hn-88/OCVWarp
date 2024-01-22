@@ -661,8 +661,8 @@ int main(int argc,char *argv[])
     strpathtowarpfile = "EP_xyuv_1920.map";
     char anglexstr[40];
     char angleystr[40];
-	char anglexincrstr[40];
-	char angleyincrstr[40];
+    char anglexincrstr[40];
+    char angleyincrstr[40];
     char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
     outputfourccstr[0] = 'N';
     outputfourccstr[1] = 'U';
@@ -778,20 +778,48 @@ int main(int argc,char *argv[])
 			if (isOutputWarped == 1) transformtype = 4;
 			else  transformtype = 3;
 		} else transformtype = 2;
-		/*	
-		lTmp = tinyfd_inputBox(
-		"Please Input", "Transform type\n0  for EquirectTo360Fisheye\n1  for EquirectTo180Fisheye\n2  for 360FisheyeToEquirect\n3  for 180FisheyeToEquirect\n4  for 180Fisheye (fulldome) to warped file\n5  for Equirect to warped file", "4");
-		if (!lTmp) return 1 ;	
-		transformtype = atoi(lTmp);
-		*/
 		
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Output FOURCC", "avc1");
 		if (!lTmp) return 1 ;	
 		std::strcpy(outputfourccstr,  lTmp);
 
+		// we need to ask user for anglex angley data only if isInputEquirect==1
+		std::strcpy(anglexstr,"-90.0");
+		std::strcpy(anglexincrstr,"0.0");
+		std::strcpy(angleystr,"-160.0");
+		std::strcpy(angleyincrstr,"0.0");
 
-	
+		if (isInputEquirect==1) {
+			lTmp = tinyfd_inputBox(
+			"Please Input", "AngleX", "-90.0");
+			if (!lTmp) return 1 ;	
+			std::strcpy(anglexstr,  lTmp);
+			
+			lTmp = tinyfd_inputBox(
+			"Please Input", "AngleX increment per frame", "0.0");
+			if (!lTmp) return 1 ;	
+			std::strcpy(anglexincrstr,  lTmp);
+			
+			lTmp = tinyfd_inputBox(
+			"Please Input", "AngleY", "-160.0");
+			if (!lTmp) return 1 ;	
+			std::strcpy(angleystr,  lTmp);
+			
+			lTmp = tinyfd_inputBox(
+			"Please Input", "AngleY increment per frame", "0.0");
+			if (!lTmp) return 1 ;	
+			std::strcpy(angleyincrstr,  lTmp);			
+		}
+		anglex = atof(anglexstr);
+		angley = atof(angleystr);
+		anglexincr = atof(anglexincrstr);
+		angleyincr = atof(angleyincrstr);
+		
+
+
+	/* ***********
+        adding a preview window would add significantly to complexity, so, skipping for now
 		// Init cvui and tell it to create a OpenCV window, i.e. cv::namedWindow(WINDOW_NAME).
 		cvui::init(WINDOW_NAME);
 		cv::Mat frame = cv::Mat(cv::Size(400, 200), CV_8UC3);
@@ -801,47 +829,55 @@ int main(int argc,char *argv[])
 
 		// Render UI components to the frame
 		cvui::text(frame, 350, 10, "Preview");
-		}
-	}
-     inistr = OpenFileNameini;
-     std::ifstream infile(inistr);
-    
-    
-    int ind = 1;
-    // inputs from ini file
-    if (infile.is_open())
-		  {
-			
-			infile >> tempstring;
-			infile >> tempstring;
-			infile >> tempstring;
-			// first three lines of ini file are comments
-			infile >> anglexstr;
-			infile >> tempstring;
-			infile >> anglexincrstr;
-			infile >> tempstring;
-			infile >> angleystr;
-			infile >> tempstring;
-			infile >> angleyincrstr;
-			infile >> tempstring;
-			infile >> outputw;
-			infile >> tempstring;
-			infile >> outputh;
-			infile >> tempstring;
-			infile >> transformtype;
-			infile >> tempstring;
-			infile >> outputfourccstr;
-			infile >> tempstring;
-			infile >> strpathtowarpfile;
-			infile.close();
-			
-			anglex = atof(anglexstr);
-			angley = atof(angleystr);
-			anglexincr = atof(anglexincrstr);
-			angleyincr = atof(angleyincrstr);
-		  }
-
-	else std::cout << "Unable to open ini file, using defaults." << std::endl;
+	
+		} // end while (true) loop
+		************
+         not adding a preview window for now
+			*/
+	} // if (! OpenFileNameini)
+	
+	else {
+	     inistr = OpenFileNameini;
+	     std::ifstream infile(inistr);
+	    
+	    
+	    int ind = 1;
+	    // inputs from ini file
+	    if (infile.is_open())
+			  {
+				
+				infile >> tempstring;
+				infile >> tempstring;
+				infile >> tempstring;
+				// first three lines of ini file are comments
+				infile >> anglexstr;
+				infile >> tempstring;
+				infile >> anglexincrstr;
+				infile >> tempstring;
+				infile >> angleystr;
+				infile >> tempstring;
+				infile >> angleyincrstr;
+				infile >> tempstring;
+				infile >> outputw;
+				infile >> tempstring;
+				infile >> outputh;
+				infile >> tempstring;
+				infile >> transformtype;
+				infile >> tempstring;
+				infile >> outputfourccstr;
+				infile >> tempstring;
+				infile >> strpathtowarpfile;
+				infile.close();
+				
+				anglex = atof(anglexstr);
+				angley = atof(angleystr);
+				anglexincr = atof(anglexincrstr);
+				angleyincr = atof(angleyincrstr);
+			  }
+	
+		else std::cout << "Unable to open ini file, using defaults." << std::endl;
+	
+	} // end else block of if  (! OpenFileNameini) 
 	
 	std::cout << "Output codec type: " << outputfourccstr << std::endl;
 	
