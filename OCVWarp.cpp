@@ -94,6 +94,21 @@ float maxu=0, minu=0, maxv=0, minv=0;
 // meshx is in the range [-aspectratio, aspectratio]
 // we assume meshy is in the range [-1,1]
 // meshu and meshv in [0,1]
+std::string tempstring;
+
+int outputw = 1920;
+int outputh = 1080;
+
+int transformtype = 0;
+ 	// 0 = Equirectangular to 360 degree fisheye
+    	// 1 = Equirectangular to 180 degree fisheye
+    
+    char anglexstr[40];
+    char angleystr[40];
+    char anglexincrstr[40];
+    char angleyincrstr[40];
+    char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
+    
 
 bool ReadMesh(std::string strpathtowarpfile)
 {
@@ -673,31 +688,16 @@ int main(int argc,char *argv[])
 	bool showdisplay = 1;
     double anglex = 0;
     double angley = 0;
-	double anglexincr = 0;
-	double angleyincr = 0;
-    
-    int outputw = 1920;
-    int outputh = 1080;
-
-	int transformtype = 0;
- 	// 0 = Equirectangular to 360 degree fisheye
-    	// 1 = Equirectangular to 180 degree fisheye
-    
-    
+    double anglexincr = 0;
+    double angleyincr = 0;
+     
     int texturew = 2048;
-    
-    std::string tempstring;
-    //std::string strpathtowarpfile; making this a global var
     strpathtowarpfile = "EP_xyuv_1920.map";
-    char anglexstr[40];
-    char angleystr[40];
-    char anglexincrstr[40];
-    char angleyincrstr[40];
-    char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
     outputfourccstr[0] = 'N';
     outputfourccstr[1] = 'U';
     outputfourccstr[2] = 'L';
     outputfourccstr[3] = 'L';
+  
     
     //const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
     // this line above causes the windows build to not run! although it compiles ok.
