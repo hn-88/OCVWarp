@@ -8,14 +8,9 @@ cd build
 cmake ..
 make OCVWarp.bin
 ```
-Only OCVWarp.bin is strictly necessary. If desired, 
-```
-make OCVWarpNorth.bin
-make getfourcc.bin
-```
 Initial behaviour and parameters are set using OCVWarp.ini in the build folder. Please see [transformtype.txt](https://github.com/hn-88/OCVWarp/blob/master/build/transformtype.txt) for supported transforms. 
 
-A file open dialog asks you for the input file. The output file is put in the same directory, with F.avi appended to the input filename. The codec used for the output is the same codec as for the input if available on your system, or as chosen in the ini file. (If the input file's codec is not available, the output is saved as an uncompressed avi, which can quickly become huge.)
+A file open dialog asks you for the input ini file, then for the input video file, and finally the filename of the desired output file. The codec used for the output is the same codec as for the input if available on your system, or as chosen in the ini file. (If the input file's codec is not available, the output is saved as an uncompressed avi, which can quickly become huge.)
 
 Keyboard commands are
 ```
