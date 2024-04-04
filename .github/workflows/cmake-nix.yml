@@ -49,7 +49,7 @@ jobs:
         export VERSION=$(git rev-parse --short HEAD) # linuxdeployqt uses this for naming the file
         ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -bundle-non-qt-libs
         ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage
-        mv OCVWarp*.AppImage OCVWarp-3.00-x86_64.AppImage -v
+        mv OCVWarp*.AppImage OCVWarp-3.10-x86_64.AppImage -v
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
