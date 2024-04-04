@@ -707,14 +707,14 @@ int main(int argc,char *argv[])
 	// adding code to work with command-line arguments
 	// argv[0] = name of exe, argv[1] = ini file path, argv[2] = input file path, argv[3] = output file path
 	// but no error checking!
-    char SaveFileName[100];
-    char OpenFileNameini[100];
-    char OpenFileName[100];
+    char const * SaveFileName;
+    char const * OpenFileNameini;
+    char const * OpenFileName;
 	bool argsSupplied = 0;
 	if (argc == 4) {
-		std::strcpy(OpenFileNameini, argv[1];
-		std::strcpy(OpenFileName, argv[2];
-		std::strcpy(SaveFileName, argv[3];
+		std::strcpy(OpenFileNameini, argv[1]);
+		std::strcpy(OpenFileName, argv[2]);
+		std::strcpy(SaveFileName, argv[3]);
 		argsSupplied = 1;
 	}
 		
