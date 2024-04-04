@@ -707,9 +707,9 @@ int main(int argc,char *argv[])
 	// adding code to work with command-line arguments
 	// argv[0] = name of exe, argv[1] = ini file path, argv[2] = input file path, argv[3] = output file path
 	// but no error checking!
-    char const * SaveFileName;
-    char const * OpenFileNameini;
-    char const * OpenFileName;
+    char const * SaveFileName = "";
+    char const * OpenFileNameini = "";
+    char const * OpenFileName = "";
 	bool argsSupplied = 0;
 	if (argc == 4) {
 		OpenFileNameini = argv[1];
