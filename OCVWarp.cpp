@@ -703,13 +703,26 @@ int main(int argc,char *argv[])
     // this line above causes the windows build to not run! although it compiles ok.
     // askOutputType=1 works only on Windows (vfw?) currently
     const bool askOutputType = 0;
-    
+
+	// adding code to work with command-line arguments
+	// argv[0] = name of exe, argv[1] = ini file path, argv[2] = input file path, argv[3] = output file path
+	// but no error checking!
+    char * SaveFileName, OpenFileNameini, OpenFileNameini;
+	bool argsSupplied = 0;
+	if (argc == 4) {
+		std::strcpy(OpenFileNameini, argv[1];
+		std::strcpy(OpenFileName, argv[2];
+		std::strcpy(SaveFileName, argv[3];
+		argsSupplied = 1;
+	}
+		
     // adding code to open ini file instead of hardcoding
 	// from https://github.com/hn-88/OCVvid2fulldome/
 	std::string inistr;
 	char const * FilterPatternsini[2] =  { "*.ini","*.*" };
-	char const * OpenFileNameini;
+
 		
+	if(!argsSupplied) {	
 	OpenFileNameini = tinyfd_openFileDialog(
 				"Open an ini file if it exists",
 				"",
@@ -717,6 +730,7 @@ int main(int argc,char *argv[])
 				FilterPatternsini,
 				NULL,
 				0);
+	}
 
 	if (! OpenFileNameini) {
 		// manual mode
@@ -928,13 +942,15 @@ int main(int argc,char *argv[])
 	moveWindow("Display", 0, 0);
 	
 	char const * FilterPatterns[2] =  { "*.avi","*.*" };
-	char const * OpenFileName = tinyfd_openFileDialog(
+	if(!argsSupplied) {
+	 OpenFileName = tinyfd_openFileDialog(
 		"Open a video file",
 		"",
 		2,
 		FilterPatterns,
 		NULL,
 		0);
+	}
 
 	if (! OpenFileName)
 	{
@@ -985,12 +1001,14 @@ int main(int argc,char *argv[])
     
     // here, we give an option for the user to choose the output file
     // path as well as type (container, like mp4, mov, avi).
-    char const * SaveFileName = tinyfd_saveFileDialog(
+	if(!argsSupplied) {
+             SaveFileName = tinyfd_saveFileDialog(
 		"Now enter the output video file name, like output.mp4",
 		"",
 		0,
 		NULL,
 		NULL);
+	}
 
 	if (! SaveFileName)
 	{
