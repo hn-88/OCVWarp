@@ -975,7 +975,7 @@ int main(int argc,char *argv[])
 		// https://stackoverflow.com/questions/538300/check-what-number-a-string-ends-with-in-c
 		std::string test = OpenFileName;
 		std::string::size_type last_char_pos = test.find_last_not_of("0123456789");
-		string base = test.substr(0, last_char_pos + 1);
+		std::string base = test.substr(0, last_char_pos + 1);
 		if (base == test) {
 			std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl			
 		}
