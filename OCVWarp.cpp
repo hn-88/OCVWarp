@@ -977,7 +977,9 @@ int main(int argc,char *argv[])
 		std::string::size_type last_char_pos = test.find_last_not_of("0123456789");
 		std::string base = test.substr(0, last_char_pos + 1);
 		if (base == test) {
-			std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl			
+			std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;		
+		}else {
+			std::cout  << "Im seq " << test.substr(last_char_pos)  << std::endl;
 		}
 	}
 	// reference:
