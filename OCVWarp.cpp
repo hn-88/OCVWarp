@@ -986,7 +986,7 @@ int main(int argc,char *argv[])
 			// std::cout  << "last num pos is " << last_num_pos   << std::endl;
 			// std::cout  << "Im seq " << base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt)  << std::endl;
 			std::string imgSeqPath = base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt);
-			std::strcpy(OpenFileName, imgSeqPath.c_str());
+			OpenFileName = imgSeqPath.c_str();
 		}
 	}
 	// reference:
