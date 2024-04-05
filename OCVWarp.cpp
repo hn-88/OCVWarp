@@ -6,7 +6,6 @@
  * OCVWarp.cpp
  * 
  * Warps video files using the OpenCV framework. 
- * Appends F to the filename and saves as default codec (DIVX avi) in the same folder.
  * 
  * first commit:
  * Hari Nandakumar
@@ -946,7 +945,7 @@ int main(int argc,char *argv[])
 	char const * FilterPatterns[2] =  { "*.avi","*.*" };
 	if(!argsSupplied) {
 	 OpenFileName = tinyfd_openFileDialog(
-		"Open a video file",
+		"Open a video file or image sequence with zero padded filenames",
 		"",
 		2,
 		FilterPatterns,
@@ -964,7 +963,11 @@ int main(int argc,char *argv[])
 			1);
 		return 1 ;
 	}
+	// add image / image sequence support
 	
+	if (imread(OpenFileName)::data == NULL) {
+		// https://docs.opencv.org/3.4/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56
+		// so it is not an image file, so must be a video file
 	// reference:
 	// https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
 	
@@ -996,6 +999,7 @@ int main(int argc,char *argv[])
 	// Here, OpenCV on Windows needs escaped file paths. 
 	std::string OpenFileNamestr = escapedpath; 
 #endif 
+	} // end if imread data == NULL
   
 
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
