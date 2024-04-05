@@ -968,6 +968,8 @@ int main(int argc,char *argv[])
 	if (imread(OpenFileName).empty() ) {
 		// https://docs.opencv.org/3.4/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56
 		// it is not an image file because imread returns empty, so must be a video file
+	std::cout  << "Input is not an image." << OpenFileName << std::endl;
+	} // end if imread returns empty
 	// reference:
 	// https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
 	
@@ -999,7 +1001,7 @@ int main(int argc,char *argv[])
 	// Here, OpenCV on Windows needs escaped file paths. 
 	std::string OpenFileNamestr = escapedpath; 
 #endif 
-	} // end if imread data == NULL
+	
   
 
     std::string::size_type pAt = OpenFileNamestr.find_last_of('.');                  // Find extension point
