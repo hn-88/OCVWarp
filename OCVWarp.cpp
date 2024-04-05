@@ -965,9 +965,9 @@ int main(int argc,char *argv[])
 	}
 	// add image / image sequence support
 	
-	if (imread(OpenFileName)::data == NULL) {
+	if (imread(OpenFileName).empty() ) {
 		// https://docs.opencv.org/3.4/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56
-		// so it is not an image file, so must be a video file
+		// it is not an image file because imread returns empty, so must be a video file
 	// reference:
 	// https://docs.opencv.org/3.4/d7/d9e/tutorial_video_write.html
 	
