@@ -984,7 +984,7 @@ int main(int argc,char *argv[])
 		}else {
 		        std::string::size_type last_num_pos = test.find_last_of("0123456789");
 			std::cout  << "last num pos is " << last_num_pos   << std::endl;
-			std::cout  << "Im seq " << test.substr(last_char_pos, last_num_pos - last_char_pos)  << std::endl;
+			std::cout  << "Im seq " << base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt)  << std::endl;
 		}
 	}
 	// reference:
