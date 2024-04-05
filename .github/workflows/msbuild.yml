@@ -55,7 +55,7 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: |
         msbuild /m /p:Platform=x64 /p:Configuration=Release ${{env.SOLUTION_FILE_PATH}}
-        Rename-Item "x64\Release\x64Win10.exe" -NewName "OCVWarp-3.10-x64Win10.exe"
+        Rename-Item "x64\Release\x64Win10.exe" -NewName "OCVWarp-3.20-x64Win10.exe"
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
