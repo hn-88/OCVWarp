@@ -974,13 +974,16 @@ int main(int argc,char *argv[])
 		// check if it is an image sequence
 		// https://stackoverflow.com/questions/538300/check-what-number-a-string-ends-with-in-c
 		std::string test = OpenFileName;
-		std::string::size_type last_char_pos = test.find_last_not_of("0123456789");
+		std::string::size_type pAt = test.find_last_of('.');                  // Find extension point
+                std::string testwoext = test.substr(0, pAt)
+		std::string::size_type last_char_pos = testwoext.find_last_not_of("0123456789");
 		std::cout  << "last not of is " << last_char_pos   << std::endl;
-		std::string base = test.substr(0, last_char_pos + 1);
-		if (base == test) {
+		std::string base = testwoext.substr(0, last_char_pos + 1);
+		if (base == testwoext) {
 			std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;		
 		}else {
 		        std::string::size_type last_num_pos = test.find_last_of("0123456789");
+			std::cout  << "last num pos is " << last_num_pos   << std::endl;
 			std::cout  << "Im seq " << test.substr(last_char_pos, last_num_pos - last_char_pos)  << std::endl;
 		}
 	}
