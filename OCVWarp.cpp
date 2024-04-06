@@ -1073,7 +1073,7 @@ int main(int argc,char *argv[])
 	// this doesn't work well with the ffmpeg dll - don't use this.
 //#endif 
     // if input is a frame sequence, and output is a video, we need to ask the user for output fps.
-	std::cout <<  << "Input fps is " << inputVideo.get(CAP_PROP_FPS) << std::endl;
+	std::cout <<  "Input fps is " << inputVideo.get(CAP_PROP_FPS) << std::endl;
     if (!(outputfourccstr[0] == 'N' &&
     outputfourccstr[1] == 'U' &&
     outputfourccstr[2] == 'L' &&
