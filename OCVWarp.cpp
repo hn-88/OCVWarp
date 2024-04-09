@@ -994,14 +994,25 @@ int main(int argc,char *argv[])
 		std::cout  << "last not of is " << last_char_pos   << std::endl;
 		std::string base = testwoext.substr(0, last_char_pos + 1);
 		if (base == testwoext) {
-			//std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;		
+			//std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;
+			// Since input is a single image, 
+			outputfps = 0;
 		}else {
 			// if it is an image sequence, change to the %0d format.
 		        std::string::size_type last_num_pos = test.find_last_of("0123456789");
 			// std::cout  << "last num pos is " << last_num_pos   << std::endl;
 			// std::cout  << "Im seq " << base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt)  << std::endl;
-			std::string imgSeqPath = base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt);
-			OpenFileName = imgSeqPath.c_str();
+			// ask user before changing to %0d format
+			bool isInputImSeq = tinyfd_messageBox(
+			"Input type" , 
+			"Is the input an image sequence with zero padded numbering starting from 0 or 1? If yes, we will change the path accordingly."  , 
+			"yesno" , 
+			"question" , 
+			1 ) ;
+			if(isInputImSeq) {
+				std::string imgSeqPath = base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt);
+				OpenFileName = imgSeqPath.c_str();
+			}
 		}
 	}
 	// reference:
@@ -1084,8 +1095,8 @@ int main(int argc,char *argv[])
 	// this doesn't work well with the ffmpeg dll - don't use this.
 //#endif 
 		
-    // if output fps is same as input fps
-	if (outputfps == -1) {
+    // if output fps is same as input fps, outputfps is set to -1,
+	if (outputfps < 0) {
 		outputfps = inputVideo.get(CAP_PROP_FPS);
 	}
 	
