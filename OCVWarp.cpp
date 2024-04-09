@@ -108,7 +108,7 @@ int transformtype = 0;
     char anglexincrstr[40];
     char angleyincrstr[40];
     char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
-    
+    char outputfpsstr[40];    
 
 bool ReadMesh(std::string strpathtowarpfile)
 {
@@ -672,6 +672,8 @@ inline void writeIni(std::string iniwpath)
 		inifileout << outputfourccstr << std::endl;		
 		inifileout << "#Path_to_Map_file_used_for_transformtype_4_&_5" << std::endl;
 		inifileout << "EP_xyuv_1920.map" << std::endl;
+		inifileout << "#Output_fps_-1=same_as_input__0=image_sequence" << std::endl;
+		inifileout << outputfpsstr << std::endl;
 		
 	} catch (int) {
 		std::cerr << "An error occured writing to ini file."<< std::endl ; 		
@@ -697,7 +699,7 @@ int main(int argc,char *argv[])
     outputfourccstr[1] = 'U';
     outputfourccstr[2] = 'L';
     outputfourccstr[3] = 'L';
-    int outputfps = -1;  
+    double outputfps = -1;  
     
     //const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
     // this line above causes the windows build to not run! although it compiles ok.
@@ -751,6 +753,7 @@ int main(int argc,char *argv[])
 		transformtype;
 		outputfourccstr;
 		strpathtowarpfile;
+                outputfpsstr
 		*/
 		lTmp = tinyfd_inputBox(
 		"Please Input", "Output video width", "3840");
@@ -830,11 +833,17 @@ int main(int argc,char *argv[])
 		if (!lTmp) return 1 ;	
 		std::strcpy(outputfourccstr,  lTmp);
 
+		lTmp = tinyfd_inputBox(
+		"Please Input", "Output fps (frames per second) - -1 to use input video fps, 0 for frame sequence", "-1");
+		if (!lTmp) return 1 ;
+		std::strcpy(outputfpsstr,  lTmp);
+		
 		// we need to ask user for anglex angley data only if isInputEquirect==1
 		std::strcpy(anglexstr,"-90.0");
 		std::strcpy(anglexincrstr,"0.0");
 		std::strcpy(angleystr,"-160.0");
 		std::strcpy(angleyincrstr,"0.0");
+		std::strcpy(outputfpsstr,"-1.0");
 
 		if (isInputEquirect==1) {
 			lTmp = tinyfd_inputBox(
@@ -861,6 +870,7 @@ int main(int argc,char *argv[])
 		angley = atof(angleystr);
 		anglexincr = atof(anglexincrstr);
 		angleyincr = atof(angleyincrstr);
+		outputfps = atof(outputfpsstr);
 	// here, we give an option for the user to save the ini file
         // if cancelled, the program just continues.
 		char const * lIniFilterPatterns[1] = { "*.ini" };
@@ -925,12 +935,15 @@ int main(int argc,char *argv[])
 				infile >> outputfourccstr;
 				infile >> tempstring;
 				infile >> strpathtowarpfile;
+				infile >> tempstring;
+				infile >> outputfpsstr;
 				infile.close();
 				
 				anglex = atof(anglexstr);
 				angley = atof(angleystr);
 				anglexincr = atof(anglexincrstr);
 				angleyincr = atof(angleyincrstr);
+				outputfps = atof(outputfpsstr);
 			  }
 	
 		else std::cout << "Unable to open ini file, using defaults." << std::endl;
@@ -969,7 +982,7 @@ int main(int argc,char *argv[])
 	if (imread(OpenFileName).empty() ) {
 		// https://docs.opencv.org/3.4/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56
 		// it is not an image file because imread returns empty, so must be a video file
-	std::cout  << "Input is not an image. " << OpenFileName << std::endl;
+	//std::cout  << "Input is not a single image. " << OpenFileName << std::endl;
 	} // end if imread returns empty
 	else {
 		// check if it is an image sequence
@@ -981,8 +994,9 @@ int main(int argc,char *argv[])
 		std::cout  << "last not of is " << last_char_pos   << std::endl;
 		std::string base = testwoext.substr(0, last_char_pos + 1);
 		if (base == testwoext) {
-			std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;		
+			//std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;		
 		}else {
+			// if it is an image sequence, change to the %0d format.
 		        std::string::size_type last_num_pos = test.find_last_of("0123456789");
 			// std::cout  << "last num pos is " << last_num_pos   << std::endl;
 			// std::cout  << "Im seq " << base + "%0" + std::to_string(last_num_pos - last_char_pos) + "d" + test.substr(pAt)  << std::endl;
@@ -1004,9 +1018,6 @@ int main(int argc,char *argv[])
 	std::string escapedpath = escaped(std::string(OpenFileName));
 	VideoCapture inputVideo(escapedpath.c_str());              // Open input
 #endif
-
-
-
 	
 	if (!inputVideo.isOpened())
     {
@@ -1072,10 +1083,12 @@ int main(int argc,char *argv[])
 	//outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
 	// this doesn't work well with the ffmpeg dll - don't use this.
 //#endif 
-    // if input is a frame sequence, and output is a video, we need to ask the user for output fps.	
-	std::cout <<  "Input fps is " << inputVideo.get(CAP_PROP_FPS) << std::endl;
-	std::cout <<  "Enter desired output fps: " ;
-	std::cin >> outputfps;
+		
+    // if output fps is same as input fps
+	if (outputfps == -1) {
+		outputfps = inputVideo.get(CAP_PROP_FPS);
+	}
+	
     if (!(outputfourccstr[0] == 'N' &&
     outputfourccstr[1] == 'U' &&
     outputfourccstr[2] == 'L' &&
