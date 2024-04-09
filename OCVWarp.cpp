@@ -697,7 +697,7 @@ int main(int argc,char *argv[])
     outputfourccstr[1] = 'U';
     outputfourccstr[2] = 'L';
     outputfourccstr[3] = 'L';
-  
+    int outputfps = -1;  
     
     //const bool askOutputType = argv[3][0] =='Y';  // If false it will use the inputs codec type
     // this line above causes the windows build to not run! although it compiles ok.
@@ -1072,16 +1072,18 @@ int main(int argc,char *argv[])
 	//outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
 	// this doesn't work well with the ffmpeg dll - don't use this.
 //#endif 
-    // if input is a frame sequence, and output is a video, we need to ask the user for output fps.
+    // if input is a frame sequence, and output is a video, we need to ask the user for output fps.	
 	std::cout <<  "Input fps is " << inputVideo.get(CAP_PROP_FPS) << std::endl;
+	std::cout <<  "Enter desired output fps: " ;
+	std::cin >> outputfps;
     if (!(outputfourccstr[0] == 'N' &&
     outputfourccstr[1] == 'U' &&
     outputfourccstr[2] == 'L' &&
     outputfourccstr[3] == 'L'))
         outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
-        inputVideo.get(CAP_PROP_FPS), Sout, true);
+        outputfps, Sout, true);
     else
-        outputVideo.open(NAME, ex, inputVideo.get(CAP_PROP_FPS), Sout, true);
+        outputVideo.open(NAME, ex, outputfps, Sout, true);
 
 
     if (!outputVideo.isOpened())
