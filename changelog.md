@@ -1,3 +1,15 @@
+OCVWarp v4.00
+-----------------
+This release adds basic image sequence support using OpenCV's built-in support for image sequences in VideoWriter and VideoCapture.
+
+OCVWarp v3.10
+-----------------
+This release adds basic command-line argument support.
+
+OCVWarp v3.00
+-----------------
+This release adds a UI for creation of ini file (settings for the required transformation). The Windows and Linux builds are via Github Actions, with Windows build targeting Windows 10.
+
 OCVWarp v2.70
 -----------------
 Bugfixes to make anglex and angley increments actually work.
