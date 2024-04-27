@@ -993,7 +993,7 @@ int main(int argc,char *argv[])
 		std::string::size_type pAt = test.find_last_of('.');                  // Find extension point
                 std::string testwoext = test.substr(0, pAt);
 		std::string::size_type last_char_pos = testwoext.find_last_not_of("0123456789");
-		std::cout  << "last not of is " << last_char_pos   << std::endl;
+		// std::cout  << "last not of is " << last_char_pos   << std::endl;
 		std::string base = testwoext.substr(0, last_char_pos + 1);
 		if (base == testwoext) {
 			//std::cout  << "Input is not an image sequence. " << OpenFileName << std::endl;
