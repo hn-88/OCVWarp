@@ -952,10 +952,11 @@ int main(int argc,char *argv[])
 	} // end else block of if  (! OpenFileNameini) 
 	
 	std::cout << "Output codec type: " << outputfourccstr << std::endl;
-	
-	namedWindow("Display", WINDOW_NORMAL | WINDOW_KEEPRATIO); // 0 = WINDOW_NORMAL
-	resizeWindow("Display", round((float)(outputw)/(float)(outputh)*600), 600); // this doesn't work?
-	moveWindow("Display", 0, 0);
+	if(!argsSupplied) {
+		namedWindow("Display", WINDOW_NORMAL | WINDOW_KEEPRATIO); // 0 = WINDOW_NORMAL
+		resizeWindow("Display", round((float)(outputw)/(float)(outputh)*600), 600); // this doesn't work?
+		moveWindow("Display", 0, 0);
+	}
 	
 	char const * FilterPatterns[2] =  { "*.avi","*.*" };
 	if(!argsSupplied) {
