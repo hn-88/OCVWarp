@@ -718,6 +718,7 @@ int main(int argc,char *argv[])
 		OpenFileName = argv[2];
 		SaveFileName = argv[3];
 		argsSupplied = 1;
+		showdisplay = 0;
 	}
 		
     // adding code to open ini file instead of hardcoding
