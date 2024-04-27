@@ -1,3 +1,7 @@
+OCVWarp v4.01
+-----------------
+Bugfixes for commandline usage - don't open display or bring up dialog boxes if using commandline arguments.
+
 OCVWarp v4.00
 -----------------
 This release adds basic image sequence support using OpenCV's built-in support for image sequences in VideoWriter and VideoCapture.
