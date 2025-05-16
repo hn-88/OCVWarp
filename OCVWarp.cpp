@@ -76,6 +76,7 @@ y = 2 * latitude / PI
 
 #include <opencv2/opencv.hpp>
 // including the cuda example headers
+/* removing these since there were issues
 #include <iostream>
 
 #include "opencv2/opencv_modules.hpp"
@@ -87,7 +88,8 @@ y = 2 * latitude / PI
 
 #include "opencv2/core.hpp"
 #include "opencv2/cudacodec.hpp"
-#include "opencv2/highgui.hpp"
+#include "opencv2/highgui.hpp" 
+*/
 #include "tinyfiledialogs.h"
 #define CVUI_IMPLEMENTATION
 #include "cvui.h"
@@ -1108,7 +1110,7 @@ int main(int argc,char *argv[])
     Size Sout = Size(outputw,outputh);            
     VideoWriter outputVideo;                                        // Open the output
     // test if OpenCV is compiled with cuda
-    cv::cuda::printShortCudaDeviceInfo(cv::cuda::getDevice());
+    // cv::cuda::printShortCudaDeviceInfo(cv::cuda::getDevice());
 
     cv::VideoWriter writer;
     cv::Ptr<cv::cudacodec::VideoWriter> d_writer;
