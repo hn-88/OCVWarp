@@ -1112,8 +1112,9 @@ int main(int argc,char *argv[])
     // test if OpenCV is compiled with cuda
     // cv::cuda::printShortCudaDeviceInfo(cv::cuda::getDevice());
 
-    cv::VideoWriter writer;
-    cv::Ptr<cv::cudacodec::VideoWriter> d_writer;
+    //cv::VideoWriter writer;
+    //cv::Ptr<cv::cudacodec::VideoWriter> d_writer;
+///////////////////////////////////////////////////	
 //#ifdef _WIN64
 	// OpenCV on Windows can ask for a suitable fourcc. 
 	//outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
