@@ -87,7 +87,7 @@ y = 2 * latitude / PI
 #include <numeric>
 
 #include "opencv2/core.hpp"
-#include "opencv2/cudacodec.hpp"
+#include "opencv2/cudacodec.hpp" <-- no such file or directory, with opencv 4.11.0
 #include "opencv2/highgui.hpp" 
 */
 #include "tinyfiledialogs.h"
