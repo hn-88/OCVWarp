@@ -1131,9 +1131,11 @@ int main(int argc,char *argv[])
     outputfourccstr[2] == 'L' &&
     outputfourccstr[3] == 'L'))
         outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
-        outputfps, Sout, true);
+        outputfps, Sout,  std::vector<int> { VIDEOWRITER_PROP_IS_COLOR, static_cast<int>(true), VIDEOWRITER_PROP_HW_ACCELERATION, VIDEO_ACCELERATION_ANY});
     else
-        outputVideo.open(NAME, ex, outputfps, Sout, true);
+        outputVideo.open(NAME, ex, outputfps, Sout,  std::vector<int> { VIDEOWRITER_PROP_IS_COLOR, static_cast<int>(true), VIDEOWRITER_PROP_HW_ACCELERATION, VIDEO_ACCELERATION_ANY});
+
+	// Here, we're trying the newly overloaded function open() which has parameters as the last argument, and adding the HW_ACCELERATION to ANY.
 
 
     if (!outputVideo.isOpened())
