@@ -49,7 +49,7 @@ jobs:
       run: |
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_CONFIGURATION}}
         cmake --build ${{github.workspace}}/build --config ${{env.BUILD_CONFIGURATION}}
-        # Rename-Item "x64\Release\x64Win10.exe" -NewName "OCVWarp-5testing.00-x64Win10.exe"
+        Rename-Item "build\Release\OCVWarp.bin.exe" -NewName "build\OCVWarp-5testing.00-x64Win10.exe"
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4
