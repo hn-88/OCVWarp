@@ -21,9 +21,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
       
     - name: Cache OpenCV          
       uses: actions/cache@v4
