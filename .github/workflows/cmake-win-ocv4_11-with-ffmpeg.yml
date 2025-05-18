@@ -1,0 +1,84 @@
+name: cmake-win-ocv4.11-with-ffmpeg
+
+on: workflow_dispatch
+
+env:
+  # Path to the solution file relative to the root of the project.
+  # SOLUTION_FILE_PATH: ./x64Win10.vcxproj
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+  OpenCV_DIR: D:\a\OCVWarp\OCVWarp\OpenCV\opencv\build\x64\vc16\lib
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Cache OpenCV          
+      uses: actions/cache@v4
+      id: OpenCV-cache
+      with:
+          path: |
+            **/OpenCV
+          key: ${{ runner.os }}-OpenCV4.11.0x86-64-withFFMPEG
+
+    - name: Cache OpenCV-contrib
+      id: cache-ocv-contrib
+      uses: actions/cache@v4
+      with:
+        path: opencv_contrib
+        key: ${{ runner.os }}-opencv_contrib-4.11.0
+          
+    - name: Install ffmpeg and pkg-config with choco
+      run: |
+        # choco install ffmpeg-shared # this does not have the pc files required by pkgconfig
+        choco install pkgconfiglite
+        echo "Downloading ffmpeg latest..."
+        powershell -c "Invoke-WebRequest -Uri 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip' -OutFile 'ffmpeg-master-latest-win64-gpl-shared.zip'" 
+        echo "Download complete. Extracting ... "
+        7z x ffmpeg-master-latest-win64-gpl-shared.zip
+        
+    - name: Build OpenCV 4.11.0 with ffmpeg
+      if: steps.OpenCV-cache.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/opencv/opencv.git --branch "4.11.0" --depth 1
+        git clone https://github.com/opencv/opencv_contrib.git --branch "4.11.0" --depth 1
+        # from https://github.com/Dovyski/setup-opencv-action/blob/master/index.js        
+        cmake -S opencv -B opencv/build \
+             -D CMAKE_CXX_COMPILER="g++" \
+             -D CMAKE_INSTALL_PREFIX="/usr/local" \
+             -D WITH_FFMPEG=ON \
+             -D WITH_IPP=ON \
+             -D BUILD_NEW_PYTHON_SUPPORT=OFF \
+             -D WITH_V4L=ON \
+             -D INSTALL_C_EXAMPLES=OFF \
+             -D INSTALL_PYTHON_EXAMPLES=OFF \
+             -D BUILD_EXAMPLES=OFF \
+             -D WITH_QT=ON \
+             -D WITH_OPENGL=ON \
+             -D OPENCV_EXTRA_MODULES_PATH=./opencv_contrib/modules
+        make -j10 -C opencv/build 
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_CONFIGURATION}}
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_CONFIGURATION}}
+        Rename-Item "build\Release\OCVWarp.bin.exe" -NewName "OCVWarp-5testing.ffmpeg-x64Win10.exe"
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        # Artifact name
+        name: OCVWarpWin
+        # optional, default is artifact
+        # A file, directory or wildcard pattern that describes what to upload
+        path: build/*/*.exe
