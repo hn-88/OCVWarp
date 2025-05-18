@@ -11,6 +11,7 @@ env:
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
   BUILD_CONFIGURATION: Release
   OpenCV_DIR: D:\a\OCVWarp\OCVWarp\OpenCV\opencv\build\x64\vc16\lib
+  PKG_CONFIG_PATH: .\ffmpeg-master-latest-win64-gpl-shared\lib\pkgconfig
 
 permissions:
   contents: read
