@@ -57,7 +57,7 @@ jobs:
         cmake -S opencv -B opencv/build \
              -D CMAKE_CXX_COMPILER="g++" \
              -D CMAKE_INSTALL_PREFIX="/usr/local" \
-             -D WITH_TBB=ON \
+             -D WITH_FFMPEG=ON \
              -D WITH_IPP=ON \
              -D BUILD_NEW_PYTHON_SUPPORT=OFF \
              -D WITH_V4L=ON \
