@@ -54,11 +54,9 @@ jobs:
         git clone https://github.com/opencv/opencv_contrib.git --branch "4.11.0" --depth 1
         # from https://github.com/Dovyski/setup-opencv-action/blob/master/index.js        
         cmake -S opencv -B opencv/build `
-             -D CMAKE_CXX_COMPILER="g++"  `
              -D WITH_FFMPEG=ON `
              -D WITH_IPP=ON `
              -D BUILD_NEW_PYTHON_SUPPORT=OFF `
-             -D WITH_V4L=ON `
              -D INSTALL_C_EXAMPLES=OFF `
              -D INSTALL_PYTHON_EXAMPLES=OFF `
              -D BUILD_EXAMPLES=OFF `
