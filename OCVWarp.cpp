@@ -1105,26 +1105,28 @@ int main(int argc,char *argv[])
     int ex = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));     // Get Codec Type- Int form
     // Transform from int to char via Bitwise operators
     char EXT[] = {(char)(ex & 0XFF) , (char)((ex & 0XFF00) >> 8),(char)((ex & 0XFF0000) >> 16),(char)((ex & 0XFF000000) >> 24), 0};
+    int ifourcc;
     Size S = Size((int) inputVideo.get(CAP_PROP_FRAME_WIDTH),    // Acquire input size
                   (int) inputVideo.get(CAP_PROP_FRAME_HEIGHT));
-    Size Sout = Size(outputw,outputh);            
-    VideoWriter outputVideo;                                        // Open the output
-    // test if OpenCV is compiled with cuda
-    // cv::cuda::printShortCudaDeviceInfo(cv::cuda::getDevice());
-
-    //cv::VideoWriter writer;
-    //cv::Ptr<cv::cudacodec::VideoWriter> d_writer;
-///////////////////////////////////////////////////	
-//#ifdef _WIN64
-	// OpenCV on Windows can ask for a suitable fourcc. 
-	//outputVideo.open(NAME, -1, inputVideo.get(CAP_PROP_FPS), Sout, true);
-	// this doesn't work well with the ffmpeg dll - don't use this.
-//#endif 
-		
+    Size Sout = Size(outputw,outputh);  
+    std::vector<int> videowriterParams = { VIDEOWRITER_PROP_IS_COLOR, static_cast<int>(true), VIDEOWRITER_PROP_HW_ACCELERATION, VIDEO_ACCELERATION_ANY};
     // if output fps is same as input fps, outputfps is set to -1,
-	if (outputfps < 0) {
+    if (outputfps < 0) {
 		outputfps = inputVideo.get(CAP_PROP_FPS);
-	}
+    }
+    if (!(outputfourccstr[0] == 'N' &&
+    outputfourccstr[1] == 'U' &&
+    outputfourccstr[2] == 'L' &&
+    outputfourccstr[3] == 'L')) {
+	    ifourcc = ex;
+    } else {
+	    ifourcc = ex; // set the output fourcc to the input video's fourcc since NULL fourcc string is passed
+    }
+
+    VideoWriter outputVideo;                                        // Open the output
+    
+		
+    
 	
     if (!(outputfourccstr[0] == 'N' &&
     outputfourccstr[1] == 'U' &&
