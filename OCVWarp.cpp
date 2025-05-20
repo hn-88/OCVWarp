@@ -1118,27 +1118,18 @@ int main(int argc,char *argv[])
     outputfourccstr[1] == 'U' &&
     outputfourccstr[2] == 'L' &&
     outputfourccstr[3] == 'L')) {
-	    ifourcc = ex;
+	    // int VideoWriter::fourcc(char c1, char c2, char c3, char c4) // from https://github.com/opencv/opencv/blob/1e3ab44cff250badf689dc283948234c890261d3/modules/videoio/src/cap.cpp#L894 
+	    //	{
+		//    return (c1 & 255) + ((c2 & 255) << 8) + ((c3 & 255) << 16) + ((c4 & 255) << 24);
+		//}
+	    ifourcc = (outputfourccstr[0] & 255) + ((outputfourccstr[1] & 255) << 8) + ((outputfourccstr[2] & 255) << 16) + ((outputfourccstr[3] & 255) << 24);
+	    
     } else {
 	    ifourcc = ex; // set the output fourcc to the input video's fourcc since NULL fourcc string is passed
     }
 
-    VideoWriter outputVideo;                                        // Open the output
-    
-		
-    
-	
-    if (!(outputfourccstr[0] == 'N' &&
-    outputfourccstr[1] == 'U' &&
-    outputfourccstr[2] == 'L' &&
-    outputfourccstr[3] == 'L'))
-        outputVideo.open(NAME, outputVideo.fourcc(outputfourccstr[0], outputfourccstr[1], outputfourccstr[2], outputfourccstr[3]), 
-        outputfps, Sout,  std::vector<int> { VIDEOWRITER_PROP_IS_COLOR, static_cast<int>(true), VIDEOWRITER_PROP_HW_ACCELERATION, VIDEO_ACCELERATION_ANY});
-    else
-        outputVideo.open(NAME, ex, outputfps, Sout,  std::vector<int> { VIDEOWRITER_PROP_IS_COLOR, static_cast<int>(true), VIDEOWRITER_PROP_HW_ACCELERATION, VIDEO_ACCELERATION_ANY});
-
-	// Here, we're trying the newly overloaded function open() which has parameters as the last argument, and adding the HW_ACCELERATION to ANY.
-
+    VideoWriter outputVideo(NAME, ex, outputfps, Sout, videowriterParams);
+    // Here, we're adding parameters as the last argument, and adding the HW_ACCELERATION to ANY, in the constructor itself.
 
     if (!outputVideo.isOpened())
     {
