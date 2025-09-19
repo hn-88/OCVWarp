@@ -35,15 +35,14 @@ map_y = (input_h - 1) - map_y
 map_x_u16 = np.clip(map_x / (input_w - 1) * 65535, 0, 65535).astype(np.uint16)
 map_y_u16 = np.clip(map_y / (input_h - 1) * 65535, 0, 65535).astype(np.uint16)
 
-# --- Helper to save PGM (big-endian, P5) ---
-def save_pgm_u16(path, array):
+# --- Save PGM as little-endian (FFmpeg will see gray16le) ---
+def save_pgm_u16_le(path, array):
     h, w = array.shape
     with open(path, "wb") as f:
         f.write(bytearray(f"P5\n{w} {h}\n65535\n", "ascii"))
-        array.byteswap().tofile(f)  # ensure big-endian
+        array.tofile(f)   # native little-endian on x86
 
-# --- Save flipped maps ---
-save_pgm_u16("map_x_flipped.pgm", map_x_u16)
-save_pgm_u16("map_y_flipped.pgm", map_y_u16)
+save_pgm_u16_le("map_x_flipped_le.pgm", map_x_u16)
+save_pgm_u16_le("map_y_flipped_le.pgm", map_y_u16)
 
-print("Saved map_x_flipped.pgm and map_y_flipped.pgm")
+print("Saved map_x_flipped_le.pgm and map_y_flipped_le.pgm")
