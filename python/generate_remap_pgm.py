@@ -3,7 +3,7 @@ from scipy.ndimage import zoom
 
 # --- Parameters ---
 map_path = "EP_xyuv_1920.map"
-input_w, input_h = 4096, 4096   # input video resolution
+input_w, input_h = 3840, 2160   # input video resolution
 out_w, out_h = 3840, 2160       # output remap grid resolution
 
 # --- Read .map file ---
