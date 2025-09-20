@@ -32,7 +32,7 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_
 
 This runs at 13 fps on a desktop running NVidia RTX 1060 as against 2.5 fps using OCVWarp saving to avc1 codec out.
 
-With optimized static mask - 
+TO TEST With optimized static mask - 
 --------------------------
 
 ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -loop 1 -i weight_alpha_mask.png -filter_complex "
@@ -41,6 +41,22 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -loop 1 -i weigh
   [3:v]format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1[mask_rgb];
   [remapped][mask_rgb]blend=all_mode=multiply[out]
 " -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
+
+TO TEST - with pre-processed mask - even faster - 
+--------------------------
+
+ffmpeg -loop 1 -i weight_alpha_mask.png \
+-vf "format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1,format=rgb24" \
+-t 1 -c:v libx264 -pix_fmt yuv444p mask_preprocessed.mp4
+
+(-t 1 creates a one second video)
+
+ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -stream_loop -1 -i mask_preprocessed.mp4 -filter_complex "
+  [0:v]scale=3840:2160[scaled];
+  [scaled][1:v][2:v]remap[remapped];
+  [remapped][3:v]blend=all_mode=multiply[out]
+" -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
+
 
 
 
