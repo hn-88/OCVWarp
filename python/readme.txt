@@ -20,5 +20,14 @@ ffmpeg -i 4096.png -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_m
   [remapped][mask_rgb]blend=all_mode=multiply[out]
 " -map "[out]" 4096wmasked.jpg
 
+Adding NVidia codec and copying the audio stream - 
+------------------------------------------------
+
+ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_mask.png -filter_complex "
+  [0:v]scale=3840:2160[scaled];
+  [scaled][1:v][2:v]remap[remapped];
+  [3:v]format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1[mask_rgb];
+  [remapped][mask_rgb]blend=all_mode=multiply[out]
+" -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
 
