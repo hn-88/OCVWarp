@@ -57,6 +57,22 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -stream_loop -1 
   [remapped][3:v]blend=all_mode=multiply[out]
 " -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
+TO TEST -  Or faster with yuv mask - 
+-----------------------
+
+ffmpeg -loop 1 -i weight_alpha_mask.png \
+-vf "format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1,format=rgb24" \
+-frames:v 1 -pix_fmt rgb24 mask_3840x2160.rgb24
+
+ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm \
+-f rawvideo -pix_fmt rgb24 -s 3840x2160 -stream_loop -1 -i mask_3840x2160.rgb24 \
+-filter_complex "
+  [0:v]scale=3840:2160[scaled];
+  [scaled][1:v][2:v]remap[remapped];
+  [remapped][3:v]blend=all_mode=multiply[out]
+" -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
+
+
 
 
 
