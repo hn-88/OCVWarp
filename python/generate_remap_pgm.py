@@ -28,9 +28,9 @@ scale_y = out_h / ny
 u_hr = zoom(u, (scale_y, scale_x), order=1)
 v_hr = zoom(v, (scale_y, scale_x), order=1)
 
-# --- Convert to pixel coords ---
-map_x = (u_hr * (input_w - 1)).astype(np.uint16)
-map_y = (v_hr * (input_h - 1)).astype(np.uint16)
+# --- Convert normalized -> integer source pixel coordinates ---
+map_x = np.round(u_hr * (input_w - 1)).astype(np.uint16)
+map_y = np.round(v_hr * (input_h - 1)).astype(np.uint16)
 
 
 # --- Save PGM files with direct coordinates ---
