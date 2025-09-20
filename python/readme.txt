@@ -17,7 +17,7 @@ ffmpeg -i input.png -i map_x.pgm -i map_y.pgm -i edge_mask.pgm \
   [0:v]scale=3840:2160[scaled]; 
   [scaled][1:v][2:v]remap[remapped]; 
   [3:v]format=gray,scale=3840:2160[mask]; 
-  [remapped][mask]alphamerge[out]
+  [remapped][mask]blend=all_mode=multiply[out]
 " -map "[out]" output.png
 
 
