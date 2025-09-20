@@ -30,4 +30,6 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_
   [remapped][mask_rgb]blend=all_mode=multiply[out]
 " -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
+This runs at 13 fps on a desktop running NVidia RTX 1060 as against 2.5 fps using OCVWarp saving to avc1 codec out.
+
 
