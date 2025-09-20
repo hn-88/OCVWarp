@@ -20,35 +20,5 @@ ffmpeg -i 4096.png -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_m
   [remapped][mask_rgb]blend=all_mode=multiply[out]
 " -map "[out]" 4096wmasked.jpg
 
-(
-ChatGPT says,
-For large images, it’s often more efficient to broadcast a single-channel grayscale mask across RGB using the geq (general equation) filter instead of fully converting it to RGB. This avoids channel duplication overhead. Here’s how you can do it in your pipeline:
-
-ffmpeg -i 4096.png -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_mask.png -filter_complex "
-  [0:v]scale=3840:2160[scaled]; 
-  [scaled][1:v][2:v]remap[remapped]; 
-  [3:v]format=gray,scale=3840:2160[mask_gray]; 
-  [remapped][mask_gray]geq=r='r(X,Y)*lum(X,Y)/255':g='g(X,Y)*lum(X,Y)/255':b='b(X,Y)*lum(X,Y)/255'[out]
-" -map "[out]" 4096wmasked.jpg
-
-Explanation
-
-[3:v]format=gray,scale=3840:2160[mask_gray]
-
-Ensures the mask is single-channel grayscale at the target resolution.
-
-[remapped][mask_gray]geq=...
-
-r='r(X,Y)*lum(X,Y)/255' → multiply the red channel of the remapped image by the grayscale value of the mask
-
-Similarly for green (g) and blue (b) channels
-
-lum(X,Y) is the luminance of the second input (mask_gray) at that pixel
-
-Dividing by 255 normalizes the mask (since PGM/PNG grayscale is 0–255)
-
-[out] → final RGB output with edges faded according to the mask
-
-)
 
 
