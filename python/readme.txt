@@ -36,14 +36,14 @@ For starting at two minutes and stopping after 10 seconds duration,
 ffmpeg -ss 00:02:00 -i input.mp4 \
        -i map_x_directp2.pgm \
        -i map_y_directp2.pgm \
-       -stream_loop -1 -i mask_3840x2160.y4m \
+        -i weight_alpha_mask.png \
        -t 10 \
 -filter_complex "
-  [0:v]scale=3840:2160[scaled];
+ [0:v]scale=3840:2160[scaled];
   [scaled][1:v][2:v]remap[remapped];
-  [remapped][3:v]blend=all_mode=multiply[out]
-" \
--map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
+  [3:v]format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1[mask_rgb];
+  [remapped][mask_rgb]blend=all_mode=multiply[out]
+" -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
 
 -------------------------------------------------------------------------------------------------------------------------------
