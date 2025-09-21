@@ -32,7 +32,25 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_
 
 This runs at 13 fps on a desktop running NVidia RTX 1060 as against 2.5 fps using OCVWarp saving to avc1 codec out.
 
-TO TEST With optimized static mask - 
+For starting at two minutes and stopping after 10 seconds duration,
+ffmpeg -ss 00:02:00 -i input.mp4 \
+       -i map_x_directp2.pgm \
+       -i map_y_directp2.pgm \
+       -stream_loop -1 -i mask_3840x2160.y4m \
+       -t 10 \
+-filter_complex "
+  [0:v]scale=3840:2160[scaled];
+  [scaled][1:v][2:v]remap[remapped];
+  [remapped][3:v]blend=all_mode=multiply[out]
+" \
+-map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+ChatGPT also suggested the following below, but they were not very useful.
+
+With optimized static mask - but this also ran at 13 fps
 --------------------------
 
 ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -loop 1 -i weight_alpha_mask.png -filter_complex "
@@ -42,7 +60,7 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -loop 1 -i weigh
   [remapped][mask_rgb]blend=all_mode=multiply[out]
 " -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
-TO TEST - with pre-processed mask - even faster - 
+With pre-processed mask - "even faster" - 20fps for some parts of the video - but this had the green video output issue.
 --------------------------
 
 ffmpeg -loop 1 -i weight_alpha_mask.png \
@@ -57,27 +75,11 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -stream_loop -1 
   [remapped][3:v]blend=all_mode=multiply[out]
 " -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
-TO TEST -  Or faster with yuv mask - 
------------------------
 
-ffmpeg -loop 1 -i weight_alpha_mask.png \
--vf "format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1,format=rgb24" \
--frames:v 1 -pix_fmt rgb24 mask_3840x2160.rgb24
-
-ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm \
--f rawvideo -pix_fmt rgb24 -s 3840x2160 -stream_loop -1 -i mask_3840x2160.rgb24 \
--filter_complex "
-  [0:v]scale=3840:2160[scaled];
-  [scaled][1:v][2:v]remap[remapped];
-  [remapped][3:v]blend=all_mode=multiply[out]
-" -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
-
-Or, use .y4m to avoid having to specify -pix_fmt rgb24 -s 3840x2160
+Or, use .y4m to avoid having to specify -pix_fmt rgb24 -s 3840x2160 - but this is only 12 fps and has the green channel issue
 -------------------------------------------------------------------
 
-ffmpeg -loop 1 -i weight_alpha_mask.png \
--vf "format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1,format=rgb24" \
--frames:v 1 -pix_fmt rgb24 mask_3840x2160.y4m
+ffmpeg -loop 1 -i weight_alpha_mask.png -vf "format=gray,scale=3840:2160,format=yuv444p" -frames:v 1 -pix_fmt yuv444p mask_3840x2160.y4
 
 ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm \
 -stream_loop -1 -i mask_3840x2160.y4m \
