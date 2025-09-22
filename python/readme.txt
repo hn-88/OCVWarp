@@ -28,7 +28,7 @@ ffmpeg -i input.mp4 -i map_x_directp2.pgm -i map_y_directp2.pgm -i weight_alpha_
   [scaled][1:v][2:v]remap[remapped];
   [3:v]format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1[mask_rgb];
   [remapped][mask_rgb]blend=all_mode=multiply[out]
-" -map "[out]" -map 0:a -c:v hevc_nvenc -b:v 13M -maxrate 15M -bufsize 26M -preset p5 \
+" -map "[out]" -map 0:a -c:v hevc_nvenc -preset p5 -cq 23 -rc vbr -maxrate 15M -bufsize 26M \
 -c:a aac -b:a 128k output.mp4
 
 This runs at 13 fps on a desktop running NVidia RTX 1060 as against 2.5 fps using OCVWarp saving to avc1 codec out.
