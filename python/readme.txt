@@ -46,6 +46,24 @@ ffmpeg -ss 00:02:00 -i input.mp4 \
   [remapped][mask_rgb]blend=all_mode=multiply[out]
 " -map "[out]" -map 0:a -c:v hevc_nvenc -c:a copy output.mp4
 
+For a problematic video, which was showing a horizontally compressed output, adding a crop solved the issue - 
+-------------------------------------------------------------------------------------------------------
+
+ffmpeg  -i "short_nometadata.mp4" \
+-i map_x_directp2.pgm -i map_y_directp2.pgm \
+-i weight_alpha_mask.png -filter_complex "
+[0:v]crop=4096:4096[cropped]; [cropped]scale=3840:2160[scaled]; 
+[scaled][1:v][2:v]remap[remapped];
+[3:v]format=gray,scale=3840:2160,colorchannelmixer=rr=1:gg=1:bb=1[mask_rgb];
+  [remapped][mask_rgb]blend=all_mode=multiply[out]
+" -map "[out]" -map 0:a -c:v hevc_nvenc -preset p5 -cq 23 -rc vbr \
+-maxrate 15M -bufsize 26M -c:a aac -b:a 128k short_w2.mp4
+
+
+For removing metadata for making VLC play it properly as a fulldome 4096x4096 movie - 
+-------------------------------------------------
+ffmpeg -i input.mp4 -c copy -map_metadata -1 output.mp4
+
 
 -------------------------------------------------------------------------------------------------------------------------------
 
