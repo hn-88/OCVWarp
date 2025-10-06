@@ -1,3 +1,9 @@
+Note:
+-----
+1. Quality is improved by first remapping at the source resolution and resizing at the final step (instead of the other way around in this example below.)
+2. A separate repo has been created, for carrying this idea forward, incorporating a Python Tkinter UI - https://github.com/hn-88/python-ffmpeg-warp/
+
+
 We can use ffmpeg's remap filter to warp with the default map, using the following:
 
 ffmpeg -i fisheye_resized.jpg -i map_x.pgm -i map_y.pgm -lavfi remap warped_output.png
