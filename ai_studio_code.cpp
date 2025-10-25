@@ -13,9 +13,9 @@ int main() {
     }
 
     // --- Define output video properties ---
-    int width = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
-    int height = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
-    int fps = static_cast<int>(inputVideo.get(cv::CAP_PROP_FPS));
+    int outputw = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
+    int outputh = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
+    int outputfps = static_cast<int>(inputVideo.get(cv::CAP_PROP_FPS));
     const std::string outputFilename = "output.mp4";
 
     // --- Construct the FFmpeg command ---
@@ -28,9 +28,11 @@ int main() {
     // -c:v hevc_nvenc: Use the NVIDIA HEVC encoder.
     // -preset slow -cq 28: Example quality settings.
     std::string ffmpeg_cmd = "ffmpeg -y -f rawvideo -pixel_format bgr24 -video_size " +
-                           std::to_string(width) + "x" + std::to_string(height) +
-                           " -framerate " + std::to_string(fps) +
-                           " -i - -c:v hevc_nvenc -preset slow -cq 28 " +
+                           std::to_string(outputw) + "x" + std::to_string(outputh) +
+                           " -framerate " + std::to_string(outputfps) +
+                           " -i - -c:v hevc_nvenc -preset p4 -cq 23 " +
+                           "-rc vbr -maxrate 8M -bufsize 16M -pix_fmt yuv420p " +
+                           "-c:a aac -b:a 192k " +
                            outputFilename;
 
     // --- Open a pipe to FFmpeg ---
@@ -44,9 +46,9 @@ int main() {
     cv::Mat src, dst, res, dst_x, dst_y;
     // Assume res, dst_x, dst_y are initialized appropriately for your remap
     // For demonstration, we'll create empty mats of the correct size.
-    res.create(height, width, CV_8UC3);
-    dst_x.create(height, width, CV_32FC1);
-    dst_y.create(height, width, CV_32FC1);
+    res.create(outputh, outputw, CV_8UC3);
+    dst_x.create(outputh, outputw, CV_32FC1);
+    dst_y.create(outputh, outputw, CV_32FC1);
     // You would populate dst_x and dst_y with your warp map here.
 
     bool doneflag = false;
