@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: 'async-io-to-ffmpeg'
 
     - name: use the alternate CMakeLists.txt
       # for building ocvwarp-ffmpeg.cpp
