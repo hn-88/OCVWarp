@@ -79,6 +79,12 @@ y = 2 * latitude / PI
 #include <iostream>
 #include <vector>
 // for ffmpeg piping
+// and for multi-threaded
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+#include <atomic>
 
 #include "tinyfiledialogs.h"
 #define CVUI_IMPLEMENTATION
@@ -90,6 +96,44 @@ y = 2 * latitude / PI
 using namespace cv;
 
 // some global variables
+
+// a reusable thread-safe queue via Gemini
+template<typename T>
+class ThreadSafeQueue {
+public:
+    void push(T value) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_queue.push(std::move(value));
+        m_cond.notify_one();
+    }
+
+    // Returns false if the queue is empty and is signaled to stop
+    bool pop(T& value) {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_cond.wait(lock, [this] { return !m_queue.empty() || m_stop; });
+
+        if (m_queue.empty() && m_stop) {
+            return false;
+        }
+
+        value = std::move(m_queue.front());
+        m_queue.pop();
+        return true;
+    }
+
+    // Signals the queue to stop waiting for new items
+    void stop() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_stop = true;
+        m_cond.notify_all();
+    }
+
+private:
+    std::queue<T> m_queue;
+    std::mutex m_mutex;
+    std::condition_variable m_cond;
+    bool m_stop = false;
+};
 
 std::string strpathtowarpfile;
 Mat meshu, meshv, meshx, meshy, meshi, I;
@@ -114,6 +158,15 @@ int transformtype = 0;
     char angleyincrstr[40];
     char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
     char outputfpsstr[40];    
+
+// The writer thread's main function
+void ffmpeg_writer(ThreadSafeQueue<cv::Mat>& queue, FILE* pipeout) {
+    cv::Mat frame;
+    while (queue.pop(frame) && !frame.empty()) {
+        // This is a blocking call, but it only blocks the writer thread
+        fwrite(frame.data, 1, frame.total() * frame.elemSize(), pipeout);
+    }
+}
 
 bool ReadMesh(std::string strpathtowarpfile)
 {
@@ -1146,9 +1199,11 @@ int main(int argc,char *argv[])
 			"error",
 			1);
 		
-        return -1;
+        return 1;
     }
 
+	ThreadSafeQueue<cv::Mat> frame_queue;
+    std::thread writer(ffmpeg_writer, std::ref(frame_queue), pipeout);
 
     std::cout << "Input frame resolution: Width=" << S.width << "  Height=" << S.height
          << " of nr#: " << inputVideo.get(CAP_PROP_FRAME_COUNT) << std::endl;
@@ -1343,8 +1398,8 @@ int main(int argc,char *argv[])
         if (!dst.isContinuous()) {
             dst = dst.clone();
         }
-        // Write the raw pixel data
-        fwrite(dst.data, 1, dst.total() * dst.elemSize(), pipeout);
+        // Push the processed frame to the queue (non-blocking)
+        frame_queue.push(dst);
 
        if (anglexincr!=0 || angleyincr!=0) {
 	   anglex = anglex + anglexincr;
@@ -1433,9 +1488,17 @@ int main(int argc,char *argv[])
 			break;
 		}
     } // end for(;;) loop
+	// Signal the writer that there are no more frames
+    frame_queue.stop();
+
+    // Wait for the writer thread to finish its work
+    writer.join();
+
+    // Close the pipe
+    pclose(pipeout);
     
     std::cout << std::endl << "Finished writing" << std::endl;
-    return 0;
-	   
+    return 0;	   
 	   
 } // end main
+
