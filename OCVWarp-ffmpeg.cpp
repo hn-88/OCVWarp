@@ -85,6 +85,8 @@ y = 2 * latitude / PI
 #include <condition_variable>
 #include <queue>
 #include <atomic>
+// and for the timer class
+#include <chrono>
 
 #include "tinyfiledialogs.h"
 #define CVUI_IMPLEMENTATION
@@ -96,6 +98,25 @@ y = 2 * latitude / PI
 using namespace cv;
 
 // some global variables
+
+class Timer {
+public:
+    Timer() : m_start_time(std::chrono::high_resolution_clock::now()) {}
+
+    void start() {
+        m_start_time = std::chrono::high_resolution_clock::now();
+    }
+
+    // Returns duration in milliseconds
+    double stop() {
+        auto end_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration = end_time - m_start_time;
+        return duration.count();
+    }
+
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
+};
 
 // a reusable thread-safe queue via Gemini
 template<typename T>
@@ -128,6 +149,12 @@ public:
         m_cond.notify_all();
     }
 
+	// size of queue for debugging
+	size_t size() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_queue.size();
+	}
+
 private:
     std::queue<T> m_queue;
     std::mutex m_mutex;
@@ -159,13 +186,47 @@ int transformtype = 0;
     char outputfourccstr[40];	// leaving extra chars for not overflowing too easily
     char outputfpsstr[40];    
 
-// The writer thread's main function
+// The instrumented writer thread's main function
 void ffmpeg_writer(ThreadSafeQueue<cv::Mat>& queue, FILE* pipeout) {
+    Timer timer;
+    double total_wait_time = 0;
+    double total_write_time = 0;
+    long long frames_written = 0;
+
+    Timer total_thread_timer; // To measure total runtime of this thread
+	total_thread_timer.start();
+
     cv::Mat frame;
-    while (queue.pop(frame) && !frame.empty()) {
-        // This is a blocking call, but it only blocks the writer thread
+    for (;;) {
+        timer.start();
+        // The pop call blocks, so this measures the time the thread is idle, waiting for a frame.
+        if (!queue.pop(frame) || frame.empty()) {
+            total_wait_time += timer.stop();
+            break; // Queue was stopped and is empty, so we exit.
+        }
+        total_wait_time += timer.stop();
+
+        timer.start();
+        // This measures the pure I/O performance.
         fwrite(frame.data, 1, frame.total() * frame.elemSize(), pipeout);
+        total_write_time += timer.stop();
+
+        frames_written++;
     }
+
+    double total_thread_runtime = total_thread_timer.stop() / 1000.0; // in seconds
+
+    // --- Print Consumer Statistics ---
+    std::cout << "\n--- Writer Thread Stats ---\n";
+    if (frames_written > 0) {
+        std::cout << "Frames Written: " << frames_written << "\n";
+        std::cout << "Avg Wait Time (ms/frame): " << total_wait_time / frames_written << "\n";
+        std::cout << "Avg Write Time (ms/frame): " << total_write_time / frames_written << "\n";
+        std::cout << "Writer Throughput (FPS): " << frames_written / total_thread_runtime << "\n";
+    } else {
+        std::cout << "No frames were written.\n";
+    }
+    std::cout << "---------------------------\n";
 }
 
 bool ReadMesh(std::string strpathtowarpfile)
@@ -1204,6 +1265,13 @@ int main(int argc,char *argv[])
 
 	ThreadSafeQueue<cv::Mat> frame_queue;
     std::thread writer(ffmpeg_writer, std::ref(frame_queue), pipeout);
+	// --- Benchmarking variables ---
+    Timer timer;
+    Timer total_producer_timer; // To measure total runtime of the producer loop
+    double total_read_time = 0;
+    double total_remap_time = 0;
+    double total_push_time = 0;
+    long long frame_count = 0;
 
     std::cout << "Input frame resolution: Width=" << S.width << "  Height=" << S.height
          << " of nr#: " << inputVideo.get(CAP_PROP_FRAME_COUNT) << std::endl;
@@ -1287,13 +1355,19 @@ int main(int argc,char *argv[])
     
     t_start = time(NULL);
 	fps = 0;
-	
+
+	total_producer_timer.start();
     for(;;)
     {
-        inputVideo >> src;              // read
+        timer.start();
+		inputVideo >> src;              // read
+		total_read_time += timer.stop();
+		
         if (src.empty()) break;         // check if at end
         //imshow("Display",src);
         key = waitKey(10);
+
+		timer.start();
         
         if(interactivemode)
         {
@@ -1389,7 +1463,8 @@ int main(int argc,char *argv[])
 			printf("Frame: %llu x: %.0f y: %.0f \r", framenum++, anglex, angley );
 			fflush(stdout);
 		}
-			
+
+		total_remap_time += timer.stop();
         
        //outputVideo.write(res); //save or
        // outputVideo << dst;
@@ -1399,7 +1474,17 @@ int main(int argc,char *argv[])
             dst = dst.clone();
         }
         // Push the processed frame to the queue (non-blocking)
+		timer.start();
         frame_queue.push(dst);
+		total_push_time += timer.stop();
+
+		frame_count++;
+
+        // --- Live Tracing ---
+        // Print the queue size every 100 frames to see the buffer dynamics.
+        if (frame_count % 100 == 0) {
+            std::cout << "Frame: " << frame_count << ", Queue Size: " << frame_queue.size() << "\n";
+        }
 
        if (anglexincr!=0 || angleyincr!=0) {
 	   anglex = anglex + anglexincr;
@@ -1488,6 +1573,9 @@ int main(int argc,char *argv[])
 			break;
 		}
     } // end for(;;) loop
+
+	double total_producer_runtime = total_producer_timer.stop() / 1000.0; // in seconds
+	
 	// Signal the writer that there are no more frames
     frame_queue.stop();
 
@@ -1498,7 +1586,22 @@ int main(int argc,char *argv[])
     pclose(pipeout);
     
     std::cout << std::endl << "Finished writing" << std::endl;
+
+	// --- Print Producer Statistics ---
+    std::cout << "\n--- Producer Thread Stats ---\n";
+    if (frame_count > 0) {
+        std::cout << "Frames Processed: " << frame_count << "\n";
+        std::cout << "Avg Read Time (ms/frame):   " << total_read_time / frame_count << "\n";
+        std::cout << "Avg Remap Time (ms/frame):  " << total_remap_time / frame_count << "\n";
+        std::cout << "Avg Push Time (ms/frame):   " << total_push_time / frame_count << "\n";
+        std::cout << "Producer Throughput (FPS):  " << frame_count / total_producer_runtime << "\n";
+    } else {
+        std::cout << "No frames were processed.\n";
+    }
+    std::cout << "---------------------------\n";
+	
     return 0;	   
 	   
 } // end main
+
 
