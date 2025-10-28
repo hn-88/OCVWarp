@@ -1,4 +1,7 @@
 # OCVWarp
+
+**Please note** - Accelerated graphics, faster performance and greater flexibility with codec selection are features made available using ffmpeg, but at the cost of giving up interactive changes to anglex etc and preview display - a python front-end is under development at https://github.com/hn-88/python-ffmpeg-warp 
+
 Warping images and videos for planetarium fulldome display using OpenCV. Windows and Linux binaries are available in [Releases](https://github.com/hn-88/OCVWarp/releases). The [wiki](https://github.com/hn-88/OCVWarp/wiki) has some more information. 
 
 In case you want to build your own binaries, if OpenCV and CMake are installed on your system, instructions for building:
